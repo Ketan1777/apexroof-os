@@ -15,7 +15,12 @@ import {
   ContractorBillingModal,
   ContractorSettings,
 } from './components/Settings/ContractorBillingModal';
-import { isCloudConfigured, syncQuoteToCloud } from './lib/supabase';
+import {
+  isCloudConfigured,
+  syncQuoteToCloud,
+  fetchQuotesFromCloud,
+  subscribeToQuotes,
+} from './lib/supabase';
 
 const DEFAULT_SETTINGS: ContractorSettings = {
   companyName: 'Apex Roofing & Restoration',
@@ -26,6 +31,8 @@ const DEFAULT_SETTINGS: ContractorSettings = {
   stripePaymentLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK || '',
   depositMode: '10_percent',
   testMode: true,
+  supabaseUrl: localStorage.getItem('apex_supabase_url') || import.meta.env.VITE_SUPABASE_URL || '',
+  supabaseAnonKey: localStorage.getItem('apex_supabase_anon_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '',
 };
 
 export function App() {
@@ -53,8 +60,44 @@ export function App() {
   const [currentView, setCurrentView] = useState<AppView>('estimator');
   const [isSmsDrawerOpen, setIsSmsDrawerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [cloudActive, setCloudActive] = useState<boolean>(isCloudConfigured());
 
-  // Sync quotes to localStorage & Supabase cloud
+  // Cloud Database: fetch quotes and enable realtime websocket subscription
+  useEffect(() => {
+    const configured = isCloudConfigured();
+    setCloudActive(configured);
+
+    if (configured) {
+      // 1. Fetch cloud quotes from Supabase
+      fetchQuotesFromCloud().then(({ quotes: cloudQuotes, error }) => {
+        if (cloudQuotes && cloudQuotes.length > 0) {
+          setQuotes(cloudQuotes);
+        } else if (cloudQuotes && cloudQuotes.length === 0) {
+          // Empty table, seed initial sample quotes to cloud
+          INITIAL_QUOTES.forEach((q) => syncQuoteToCloud(q));
+        } else if (error) {
+          console.warn('[Supabase Cloud Notice]:', error);
+        }
+      });
+
+      // 2. Subscribe to realtime PostgreSQL changes across devices
+      const unsubscribe = subscribeToQuotes((updatedQuote) => {
+        setQuotes((prev) => {
+          const exists = prev.some((q) => q.id === updatedQuote.id);
+          if (exists) {
+            return prev.map((q) => (q.id === updatedQuote.id ? updatedQuote : q));
+          }
+          return [updatedQuote, ...prev];
+        });
+      });
+
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
+    }
+  }, [settings]);
+
+  // Sync quotes to localStorage as offline safety backup
   useEffect(() => {
     localStorage.setItem('apex_quotes', JSON.stringify(quotes));
   }, [quotes]);
@@ -71,7 +114,7 @@ export function App() {
 
   const handleUpdateQuote = (updated: Quote) => {
     setQuotes((prev) => prev.map((q) => (q.id === updated.id ? updated : q)));
-    // Asynchronously sync to Supabase if configured
+    // Sync to Supabase PostgreSQL cloud table
     syncQuoteToCloud(updated);
   };
 
@@ -101,10 +144,7 @@ export function App() {
         bundleCount: 83,
       },
       selectedTier: 'better',
-      addons: DEFAULT_ADDONS.map((a) => ({
-        ...a,
-        selected: a.id === 'tear_off' || a.id === 'ice_water' || a.id === 'ridge_vent',
-      })),
+      addons: DEFAULT_ADDONS.map((a) => ({ ...a, selected: a.id === 'vent' })),
       photos: [],
       subtotal: 16120,
       tax: 1329.9,
@@ -119,6 +159,15 @@ export function App() {
     setActiveQuoteId(newQuote.id);
     setCurrentView('estimator');
     syncQuoteToCloud(newQuote);
+  };
+
+  const handleSyncAllQuotes = async (): Promise<number> => {
+    let count = 0;
+    for (const q of quotes) {
+      const res = await syncQuoteToCloud(q);
+      if (res.success) count++;
+    }
+    return count;
   };
 
   const handleSendSms = (newSms: SmsMessage) => {
@@ -144,7 +193,7 @@ export function App() {
         onNewQuote={handleCreateNewQuote}
         onOpenSettings={() => setIsSettingsOpen(true)}
         currentPlanName={planLabel}
-        isCloudActive={isCloudConfigured}
+        isCloudActive={cloudActive}
       />
 
       {/* Main Content Area */}
@@ -188,12 +237,13 @@ export function App() {
         messages={smsLog}
       />
 
-      {/* Contractor Settings & Subscription Modal */}
+      {/* Contractor Settings, Cloud Database & Billing Modal */}
       <ContractorBillingModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         settings={settings}
         onSaveSettings={setSettings}
+        onSyncAllQuotes={handleSyncAllQuotes}
       />
     </div>
   );
