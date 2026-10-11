@@ -34,121 +34,94 @@ export const Navbar: React.FC<NavbarProps> = ({
   isCloudActive = false,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-[#091310]/90 backdrop-blur-md border-b border-emerald-950/60 px-4 sm:px-6 py-3">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-        {/* Brand identity */}
-        <div className="flex items-center justify-between w-full md:w-auto">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center font-black shadow-lg shadow-emerald-500/20">
-              <ShieldCheck className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-base font-extrabold text-white tracking-tight">ApexRoof OS</h1>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                  Verified Contractor OS
-                </span>
-                {isCloudActive ? (
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 flex items-center gap-1">
-                    <Cloud className="w-2.5 h-2.5" /> Cloud Active
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 flex items-center gap-1">
-                    <Cloud className="w-2.5 h-2.5" /> Local Storage
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-slate-400">Austin & Central Texas &bull; Crew 04</p>
-            </div>
+    <header className="sticky top-0 z-40 bg-[#08130f]/95 backdrop-blur-md border-b border-emerald-950/60 px-4 sm:px-6 py-2.5">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+        {/* Left: Brand Identity & Status */}
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center font-black shadow-lg shadow-emerald-500/20 shrink-0">
+            <ShieldCheck className="w-5 h-5 text-slate-950 stroke-[2.5]" />
           </div>
-
-          {/* Mobile quick actions */}
-          <div className="flex items-center gap-2 md:hidden">
-            <button
-              onClick={onOpenSettings}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300"
-              title="Settings & Billing"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-            <button
-              onClick={onOpenSmsDrawer}
-              className="p-2 rounded-xl bg-slate-900 border border-emerald-950/80 text-emerald-400 relative"
-            >
-              <MessageSquare className="w-4 h-4" />
-              {smsCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 text-slate-950 font-bold rounded-full text-[9px] flex items-center justify-center">
-                  {smsCount}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="text-base font-extrabold text-white tracking-tight leading-none whitespace-nowrap">
+                ApexRoof OS
+              </h1>
+              {isCloudActive ? (
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Cloud Live
+                </span>
+              ) : (
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/60">
+                  <Cloud className="w-2.5 h-2.5" /> Local
                 </span>
               )}
-            </button>
-            <button
-              onClick={onNewQuote}
-              className="p-2 rounded-xl bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            </div>
+            <p className="text-[11px] text-slate-400 truncate mt-0.5">
+              Austin, TX &bull; Fleet Crew 04
+            </p>
           </div>
         </div>
 
-        {/* View switcher tabs */}
-        <div className="flex items-center gap-1 p-1 bg-slate-900/90 rounded-2xl border border-slate-800/80 w-full sm:w-auto justify-center">
+        {/* Center: Symmetrical View Switcher Pill */}
+        <nav className="hidden lg:flex items-center p-1 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-inner">
           <button
             onClick={() => onSelectView('estimator')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
               currentView === 'estimator'
-                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
-            <span>Field Estimator</span>
+            <span>Estimator</span>
           </button>
 
           <button
             onClick={() => onSelectView('customer_preview')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
               currentView === 'customer_preview'
-                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>Client View</span>
+            <span>Customer Proposal</span>
           </button>
 
           <button
             onClick={() => onSelectView('dispatch')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
               currentView === 'dispatch'
-                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
-            <span>Dispatch & Map</span>
+            <span>Dispatch Map</span>
           </button>
-        </div>
+        </nav>
 
-        {/* Right utility buttons */}
-        <div className="hidden md:flex items-center gap-2.5">
+        {/* Right: Aligned Utility Tools & CTAs */}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
           <button
             onClick={onOpenSettings}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white border border-slate-800 text-xs font-medium transition-colors"
-            title="Manage Plan & Stripe Keys"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-medium transition-all"
+            title="Database & Subscription Settings"
           >
             <Settings className="w-3.5 h-3.5 text-slate-400" />
-            <span>Plan: {currentPlanName}</span>
+            <span className="hidden md:inline">{currentPlanName}</span>
           </button>
 
           <button
             onClick={onOpenSmsDrawer}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white border border-slate-800 text-xs font-medium transition-colors"
+            className="relative flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-medium transition-all"
+            title="SMS Stream Drawer"
           >
             <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-            <span>SMS Stream</span>
+            <span className="hidden md:inline ml-1.5">SMS Log</span>
             {smsCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+              <span className="ml-1 sm:ml-1.5 px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
                 {smsCount}
               </span>
             )}
@@ -156,10 +129,52 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={onNewQuote}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black shadow-md shadow-emerald-500/20 transition-all active:scale-[0.98]"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black shadow-md shadow-emerald-500/20 transition-all active:scale-[0.98]"
           >
             <Plus className="w-3.5 h-3.5 stroke-[3]" />
-            <span>+ New Estimate</span>
+            <span className="hidden xs:inline">+ New Quote</span>
+            <span className="xs:hidden">New</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile / Tablet View Switcher Tab Strip */}
+      <div className="lg:hidden mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-center">
+        <div className="grid grid-cols-3 gap-1 p-1 bg-slate-900/90 rounded-2xl border border-slate-800 w-full max-w-md">
+          <button
+            onClick={() => onSelectView('estimator')}
+            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              currentView === 'estimator'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span>Estimator</span>
+          </button>
+
+          <button
+            onClick={() => onSelectView('customer_preview')}
+            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              currentView === 'customer_preview'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Proposal</span>
+          </button>
+
+          <button
+            onClick={() => onSelectView('dispatch')}
+            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              currentView === 'dispatch'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            <span>Dispatch</span>
           </button>
         </div>
       </div>

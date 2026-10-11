@@ -330,65 +330,102 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
 
       {/* 4. Flexible Deposit Policy Bar (Quick Selector) */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
           <div>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
               <Percent className="w-3.5 h-3.5 text-emerald-400" />
               Adjust Materials Deposit Requirement
             </h4>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 mt-0.5">
               Pick a lower deposit amount to close hesitant homeowners immediately on the driveway.
             </p>
           </div>
-          <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-3 py-1 rounded-full">
+          <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-3 py-1 rounded-full whitespace-nowrap">
             Active Deposit: ${Math.round(quote.depositAmount).toLocaleString()}
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           <button
             type="button"
             onClick={() => handleSetDepositMode(Math.round((1000 / quote.total) * 100), 1000)}
-            className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
               quote.depositAmount === 1000
-                ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/10'
+                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
             }`}
           >
-            Flat $1,000 Schedule Lock
+            <div className="flex items-center justify-between w-full mb-1">
+              <span className="text-xs font-bold text-white">Flat $1,000 Lock</span>
+              {quote.depositAmount === 1000 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              )}
+            </div>
+            <span className="text-base font-black font-mono text-emerald-400">$1,000</span>
+            <span className="text-[10px] text-slate-400 mt-1">Fastest driveway close</span>
           </button>
+
           <button
             type="button"
             onClick={() => handleSetDepositMode(10)}
-            className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
               quote.depositPercent === 10 && quote.depositAmount !== 1000
-                ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/10'
+                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
             }`}
           >
-            10% Booking Hold (${Math.round(quote.total * 0.1).toLocaleString()})
+            <div className="flex items-center justify-between w-full mb-1">
+              <span className="text-xs font-bold text-white">10% Booking Hold</span>
+              {quote.depositPercent === 10 && quote.depositAmount !== 1000 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              )}
+            </div>
+            <span className="text-base font-black font-mono text-emerald-400">
+              ${Math.round(quote.total * 0.1).toLocaleString()}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1">Standard booking hold</span>
           </button>
+
           <button
             type="button"
             onClick={() => handleSetDepositMode(20)}
-            className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-              quote.depositPercent === 20
-                ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+              quote.depositPercent === 20 && quote.depositAmount !== 1000
+                ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/10'
+                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
             }`}
           >
-            20% Material Order (${Math.round(quote.total * 0.2).toLocaleString()})
+            <div className="flex items-center justify-between w-full mb-1">
+              <span className="text-xs font-bold text-white">20% Material Order</span>
+              {quote.depositPercent === 20 && quote.depositAmount !== 1000 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              )}
+            </div>
+            <span className="text-base font-black font-mono text-emerald-400">
+              ${Math.round(quote.total * 0.2).toLocaleString()}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1">Direct supplier trigger</span>
           </button>
+
           <button
             type="button"
             onClick={() => handleSetDepositMode(30)}
-            className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
               quote.depositPercent === 30 && quote.depositAmount !== 1000
-                ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/10'
+                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
             }`}
           >
-            30% Standard Deposit (${Math.round(quote.total * 0.3).toLocaleString()})
+            <div className="flex items-center justify-between w-full mb-1">
+              <span className="text-xs font-bold text-white">30% Standard Deposit</span>
+              {quote.depositPercent === 30 && quote.depositAmount !== 1000 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              )}
+            </div>
+            <span className="text-base font-black font-mono text-emerald-400">
+              ${Math.round(quote.total * 0.3).toLocaleString()}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1">Full contract standard</span>
           </button>
         </div>
       </div>
@@ -424,45 +461,45 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
       )}
 
       {/* Sticky Bottom Field Action Toolbar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#091310]/95 backdrop-blur-md border-t border-emerald-950/60 p-4 shadow-2xl">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Price & Deposit indicator */}
-          <div className="flex items-center justify-between w-full sm:w-auto gap-6">
-            <div>
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#08130f]/95 backdrop-blur-md border-t border-emerald-950/70 py-3 px-4 sm:px-6 shadow-2xl">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+          {/* Symmetrical Price & Deposit Metric Badges */}
+          <div className="grid grid-cols-2 gap-2.5 w-full md:w-auto md:flex md:items-center">
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl px-4 py-2 min-w-[155px]">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Total Estimate ({quote.calculation.totalSquares} SQ)
+                Total Estimate ({quote.calculation.totalSquares.toFixed(1)} SQ)
               </span>
-              <span className="text-xl sm:text-2xl font-black text-white font-mono">
+              <span className="text-lg sm:text-xl font-black text-white font-mono leading-tight">
                 ${Math.round(quote.total).toLocaleString()}
               </span>
             </div>
 
-            <div className="border-l border-slate-800 pl-4 sm:pl-6">
+            <div className="bg-emerald-950/40 border border-emerald-800/40 rounded-2xl px-4 py-2 min-w-[155px]">
               <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 Deposit Required
               </span>
-              <span className="text-lg sm:text-xl font-black text-emerald-400 font-mono">
+              <span className="text-lg sm:text-xl font-black text-emerald-300 font-mono leading-tight">
                 ${Math.round(quote.depositAmount).toLocaleString()}
               </span>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap sm:flex-nowrap">
             <button
               type="button"
               onClick={() => setIsSmsModalOpen(true)}
-              className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white border border-slate-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
             >
               <Send className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Send SMS Link</span>
+              <span>SMS Link</span>
             </button>
 
             <button
               type="button"
               onClick={onPresentToClient}
-              className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+              className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-850 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-750 text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
             >
               <Eye className="w-3.5 h-3.5 text-teal-400" />
               <span>Present to Client</span>
@@ -471,14 +508,14 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
             <button
               type="button"
               onClick={() => setShowSignatureModal(true)}
-              className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+              className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-700"
             >
               <PenTool className="w-3.5 h-3.5 text-emerald-400" />
               <span>{quote.signatureDataUrl ? 'Signed ✓' : 'E-Sign'}</span>
             </button>
 
             {quote.status === 'deposit_paid' ? (
-              <div className="px-4 py-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-black flex items-center gap-1.5">
+              <div className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-black flex items-center justify-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" /> Deposit Paid
               </div>
             ) : (
@@ -491,10 +528,10 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
                     setIsStripeOpen(true);
                   }
                 }}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98]"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
               >
-                <CreditCard className="w-3.5 h-3.5" />
-                <span>Collect Deposit (${Math.round(quote.depositAmount).toLocaleString()})</span>
+                <CreditCard className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Collect Deposit</span>
               </button>
             )}
           </div>

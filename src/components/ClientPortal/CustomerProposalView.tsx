@@ -294,32 +294,58 @@ export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
             </span>
           </div>
 
-          <div className="flex justify-between text-lg font-black text-white pt-3 border-t border-slate-800">
-            <span>Total Complete Roof Replacement</span>
-            <span className="text-emerald-400 font-mono">
-              ${quote.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
+          <div className="pt-4 border-t border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Total Roof Replacement
+                </span>
+                <span className="text-2xl font-black text-white font-mono mt-1">
+                  ${quote.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                <span className="text-[10px] text-slate-400 mt-1">
+                  Includes labor, tear-off, {selectedTier.name} shingles & warranty
+                </span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/30 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider block">
+                    Earnest Deposit Due
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                    {quote.depositAmount === 1000 ? 'Flat $1k' : `${quote.depositPercent}%`}
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-emerald-400 font-mono mt-1">
+                  ${quote.depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                <span className="text-[10px] text-slate-400 mt-1">
+                  Secures production slot & initial material delivery
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Deposit Schedule Callout */}
-        <div className="bg-[#091510] p-5 rounded-2xl border border-emerald-500/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-              Stage 1 Materials Deposit ({quote.depositPercent}%)
-            </span>
-            <h4 className="text-xl font-black text-white mt-1">
-              ${quote.depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </h4>
-            <p className="text-xs text-slate-400">
-              Remaining balance due upon final city building inspection and clean-up.
+        {/* Deposit Schedule Action Banner */}
+        <div className="bg-[#081510] p-5 sm:p-6 rounded-2xl border border-emerald-500/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-lg shadow-emerald-950/30">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                Stage 1 Booking Deposit
+              </span>
+            </div>
+            <p className="text-xs text-slate-300">
+              Balance due upon final building inspection and magnet nail sweep.
             </p>
           </div>
 
-          <div>
+          <div className="w-full sm:w-auto">
             {quote.status === 'deposit_paid' ? (
-              <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold text-sm">
-                <Check className="w-5 h-5" /> Deposit Paid & Scheduled
+              <div className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold text-sm">
+                <Check className="w-5 h-5 text-emerald-400" /> Deposit Received & Scheduled
               </div>
             ) : (
               <button
@@ -331,9 +357,10 @@ export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
                     setIsStripeOpen(true);
                   }
                 }}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-sm shadow-xl shadow-emerald-500/20 transition-all active:scale-[0.98]"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-sm shadow-xl shadow-emerald-500/20 transition-all active:scale-[0.98]"
               >
-                <CreditCard className="w-4 h-4" /> Pay Deposit (${Math.round(quote.depositAmount).toLocaleString()})
+                <CreditCard className="w-4 h-4 stroke-[2.5]" />
+                <span>Pay Deposit (${Math.round(quote.depositAmount).toLocaleString()})</span>
               </button>
             )}
           </div>
