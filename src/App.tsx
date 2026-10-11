@@ -15,11 +15,13 @@ import {
   ContractorBillingModal,
   ContractorSettings,
 } from './components/Settings/ContractorBillingModal';
+import { AuthModal } from './components/Auth/AuthModal';
 import {
   isCloudConfigured,
   syncQuoteToCloud,
   fetchQuotesFromCloud,
   subscribeToQuotes,
+  getCurrentAuthUser,
 } from './lib/supabase';
 
 const DEFAULT_SETTINGS: ContractorSettings = {
@@ -60,7 +62,21 @@ export function App() {
   const [currentView, setCurrentView] = useState<AppView>('estimator');
   const [isSmsDrawerOpen, setIsSmsDrawerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(() => {
+    return localStorage.getItem('apex_user_email') || null;
+  });
   const [cloudActive, setCloudActive] = useState<boolean>(isCloudConfigured());
+
+  // Check existing session
+  useEffect(() => {
+    getCurrentAuthUser().then((user) => {
+      if (user?.email) {
+        setCurrentUserEmail(user.email);
+        localStorage.setItem('apex_user_email', user.email);
+      }
+    });
+  }, []);
 
   // Cloud Database: fetch quotes and enable realtime websocket subscription
   useEffect(() => {
@@ -194,6 +210,8 @@ export function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         currentPlanName={planLabel}
         isCloudActive={cloudActive}
+        currentUserEmail={currentUserEmail}
+        onOpenAuth={() => setIsAuthOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -235,6 +253,24 @@ export function App() {
         isOpen={isSmsDrawerOpen}
         onClose={() => setIsSmsDrawerOpen(false)}
         messages={smsLog}
+      />
+
+      {/* Contractor Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        currentUserEmail={currentUserEmail}
+        onAuthSuccess={(email, compName) => {
+          setCurrentUserEmail(email);
+          localStorage.setItem('apex_user_email', email);
+          if (compName) {
+            setSettings((prev) => ({ ...prev, companyName: compName }));
+          }
+        }}
+        onLogoutSuccess={() => {
+          setCurrentUserEmail(null);
+          localStorage.removeItem('apex_user_email');
+        }}
       />
 
       {/* Contractor Settings, Cloud Database & Billing Modal */}

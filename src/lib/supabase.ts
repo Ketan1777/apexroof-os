@@ -284,3 +284,66 @@ export function subscribeToQuotes(onQuoteUpdate: (quote: Quote) => void): (() =>
     return null;
   }
 }
+
+/**
+ * Supabase Authentication Helpers
+ */
+export async function signUpWithEmail(email: string, password: string, companyName?: string) {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { user: null, error: 'Database not connected. Please connect Supabase in Settings.' };
+  }
+  try {
+    const { data, error } = await client.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { company_name: companyName || 'Apex Roofing & Restoration' },
+      },
+    });
+    if (error) return { user: null, error: error.message };
+    return { user: data.user, error: null };
+  } catch (err: any) {
+    return { user: null, error: err?.message || 'Failed to sign up.' };
+  }
+}
+
+export async function signInWithEmail(email: string, password: string) {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { user: null, error: 'Database not connected. Please connect Supabase in Settings.' };
+  }
+  try {
+    const { data, error } = await client.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) return { user: null, error: error.message };
+    return { user: data.user, error: null };
+  } catch (err: any) {
+    return { user: null, error: err?.message || 'Failed to sign in.' };
+  }
+}
+
+export async function signOutUser() {
+  const client = getSupabaseClient();
+  if (!client) return { error: null };
+  try {
+    const { error } = await client.auth.signOut();
+    return { error: error ? error.message : null };
+  } catch (err: any) {
+    return { error: err?.message };
+  }
+}
+
+export async function getCurrentAuthUser() {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  try {
+    const { data: { user } } = await client.auth.getUser();
+    return user;
+  } catch {
+    return null;
+  }
+}
+

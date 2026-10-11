@@ -8,6 +8,7 @@ import {
   Plus,
   Settings,
   Cloud,
+  User,
 } from 'lucide-react';
 
 export type AppView = 'estimator' | 'dispatch' | 'customer_preview';
@@ -21,6 +22,8 @@ interface NavbarProps {
   onOpenSettings: () => void;
   currentPlanName: string;
   isCloudActive?: boolean;
+  currentUserEmail?: string | null;
+  onOpenAuth: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -32,6 +35,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSettings,
   currentPlanName,
   isCloudActive = false,
+  currentUserEmail,
+  onOpenAuth,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-[#08130f]/95 backdrop-blur-md border-b border-emerald-950/60 px-3 sm:px-6 py-2.5">
@@ -104,6 +109,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Action Icons & New Quote Button */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <button
+            onClick={onOpenAuth}
+            className="flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-medium transition-all"
+            title={currentUserEmail ? `Account: ${currentUserEmail}` : 'Sign In / Register'}
+          >
+            <User className="w-4 h-4 text-emerald-400" />
+            <span className="hidden md:inline ml-1.5">
+              {currentUserEmail ? currentUserEmail.split('@')[0] : 'Sign In'}
+            </span>
+          </button>
+
           <button
             onClick={onOpenSettings}
             className="flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-medium transition-all"
