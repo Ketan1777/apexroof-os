@@ -16,6 +16,7 @@ import {
   ContractorSettings,
 } from './components/Settings/ContractorBillingModal';
 import { AuthModal } from './components/Auth/AuthModal';
+import { PrintableProposalDocument } from './components/Print/PrintableProposalDocument';
 import {
   isCloudConfigured,
   syncQuoteToCloud,
@@ -272,6 +273,16 @@ export function App() {
           localStorage.removeItem('apex_user_email');
         }}
       />
+
+      {/* 100% Synchronized Official Printable Proposal PDF */}
+      {activeQuote && (
+        <PrintableProposalDocument
+          quote={activeQuote}
+          companyName={settings.companyName}
+          companyPhone={settings.phone}
+          companyEmail={settings.email}
+        />
+      )}
 
       {/* Contractor Settings, Cloud Database & Billing Modal */}
       <ContractorBillingModal

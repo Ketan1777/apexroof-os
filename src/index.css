@@ -29,33 +29,37 @@
   body {
     background: #ffffff !important;
     color: #0f172a !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
+  /* Hide regular interactive screen UI */
   header,
-  .no-print,
+  main,
+  nav,
   button,
-  .sticky {
+  .sticky,
+  .fixed,
+  .no-print,
+  #root > div > header,
+  #root > div > main {
     display: none !important;
   }
 
-  .print-only {
+  /* Show the dedicated printable proposal document */
+  .print-document {
     display: block !important;
+    visibility: visible !important;
   }
 
-  .print-card {
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #0f172a !important;
-    box-shadow: none !important;
+  .page-break-inside-avoid {
     page-break-inside: avoid;
+    break-inside: avoid;
   }
 
-  .print-text-dark {
-    color: #0f172a !important;
-  }
-
-  .print-text-muted {
-    color: #475569 !important;
+  @page {
+    size: letter portrait;
+    margin: 10mm;
   }
 
   * {
@@ -63,3 +67,4 @@
     print-color-adjust: exact !important;
   }
 }
+
