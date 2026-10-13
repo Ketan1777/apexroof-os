@@ -17,7 +17,9 @@ interface SatelliteRoofViewerProps {
   state: string;
   zip: string;
   totalSquares: number;
+  groundSqFt?: number;
   onAddressChange?: (newAddress: { address: string; city: string; state: string; zip: string }) => void;
+  onApplyFootprint?: (sqFt: number) => void;
 }
 
 const QUICK_CITIES = [
@@ -37,7 +39,9 @@ export const SatelliteRoofViewer: React.FC<SatelliteRoofViewerProps> = ({
   state,
   zip,
   totalSquares,
+  groundSqFt,
   onAddressChange,
+  onApplyFootprint,
 }) => {
   const [searchInput, setSearchInput] = useState(`${address ? `${address}, ` : ''}${city || 'Austin'}, ${state || 'TX'} ${zip || ''}`.trim());
   const [activeQuery, setActiveQuery] = useState(`${address ? `${address}, ` : ''}${city || 'Austin'}, ${state || 'TX'} ${zip || ''}`.trim());
@@ -266,16 +270,53 @@ export const SatelliteRoofViewer: React.FC<SatelliteRoofViewerProps> = ({
           <div className="absolute left-1/2 top-8 bottom-8 border-r border-dashed border-emerald-400/20" />
         </div>
 
-        {/* Bottom Floating Stats Pill */}
-        <div className="absolute bottom-3 left-3 right-3 sm:right-auto flex items-center justify-between sm:justify-start gap-3 bg-slate-950/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-emerald-950/90 shadow-lg text-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="text-slate-400">Calculated Footprint:</span>
-            <span className="font-mono font-bold text-white">{totalSquares} SQ</span>
+        {/* Bottom Floating Stats Pill & Footprint Display */}
+        <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2.5 bg-slate-950/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-emerald-950/90 shadow-2xl text-xs">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="text-slate-400 font-medium">Ground Footprint:</span>
+              <span className="font-mono font-bold text-white">
+                {(groundSqFt || Math.round((totalSquares / 1.25) * 100)).toLocaleString()}{' '}
+                <span className="text-[10px] text-slate-400 font-normal">sq ft</span>
+              </span>
+            </div>
+
+            <div className="hidden sm:block h-3.5 w-px bg-slate-800" />
+
+            <div className="flex items-center gap-2">
+              <span className="text-emerald-400 font-bold">Roof Size:</span>
+              <span className="font-mono font-extrabold text-white">
+                {totalSquares.toFixed(1)}{' '}
+                <span className="text-xs text-emerald-400 font-semibold">SQ</span>
+              </span>
+              <span className="text-[10px] text-slate-500 font-mono">
+                (~{Math.round(totalSquares * 100).toLocaleString()} sq ft)
+              </span>
+            </div>
           </div>
-          <span className="text-[11px] text-emerald-300 flex items-center gap-1 font-medium">
-            <ShieldCheck className="w-3 h-3" /> Zoom Level {zoomLevel}x
-          </span>
+
+          <div className="flex items-center gap-2 ml-auto">
+            {onApplyFootprint && (
+              <div className="hidden md:flex items-center gap-1 text-[10px] text-slate-400 mr-1">
+                <span className="text-slate-500">Quick Set:</span>
+                {[1800, 2400, 3200].map((sqFt) => (
+                  <button
+                    key={sqFt}
+                    type="button"
+                    onClick={() => onApplyFootprint(sqFt)}
+                    className="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-300 border border-slate-800 font-mono"
+                  >
+                    {sqFt.toLocaleString()} sq ft
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <span className="text-[11px] text-emerald-300 flex items-center gap-1 font-semibold px-2 py-0.5 rounded-lg bg-emerald-950/60 border border-emerald-800/40">
+              <ShieldCheck className="w-3 h-3 text-emerald-400" /> {zoomLevel}x Sat
+            </span>
+          </div>
         </div>
       </div>
     </div>

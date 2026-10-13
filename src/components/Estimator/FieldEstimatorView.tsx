@@ -13,16 +13,20 @@ import {
   Package,
   ShieldAlert,
   Satellite,
+  DollarSign,
+  Sparkles,
 } from 'lucide-react';
 import { Quote, ShingleTierId, RoofCalculation, InspectionPhoto, SmsMessage } from '../../types';
-import { SHINGLE_TIERS } from '../../data/seedData';
+import { SHINGLE_TIERS, PITCH_CONFIGS } from '../../data/seedData';
 import { PitchAndSquaresCalculator } from './PitchAndSquaresCalculator';
 import { TierSelector } from './TierSelector';
 import { AddonSelector } from './AddonSelector';
 import { InspectionPhotos } from './InspectionPhotos';
 import { SatelliteRoofViewer } from './SatelliteRoofViewer';
+import { JobCostingMeter } from './JobCostingMeter';
 import { SignaturePad } from '../Signature/SignaturePad';
 import { StripeCheckoutModal } from '../Payment/StripeCheckoutModal';
+import { HomeownerFinancingModal } from '../Payment/HomeownerFinancingModal';
 import { SendSmsModal } from '../SMS/SendSmsModal';
 import { MaterialOrderModal } from '../Suppliers/MaterialOrderModal';
 import { InsuranceSupplementModal } from '../Insurance/InsuranceSupplementModal';
@@ -47,6 +51,7 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
   const [isSmsModalOpen, setIsSmsModalOpen] = useState(false);
   const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
   const [isInsuranceModalOpen, setIsInsuranceModalOpen] = useState(false);
+  const [isFinancingOpen, setIsFinancingOpen] = useState(false);
   const [showSatellite, setShowSatellite] = useState(true);
 
   const calculateTotals = (
@@ -336,6 +341,22 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
           state={quote.customer.state}
           zip={quote.customer.zip}
           totalSquares={quote.calculation.totalSquares}
+          groundSqFt={quote.calculation.groundSqFt}
+          onApplyFootprint={(sqFt) => {
+            const pitchMultiplier = PITCH_CONFIGS[quote.calculation.pitch]?.multiplier || 1.12;
+            const storiesMultiplier = quote.calculation.stories === 2 ? 1.08 : quote.calculation.stories === 3 ? 1.16 : 1.0;
+            const pitchAdjustedSqFt = sqFt * pitchMultiplier * storiesMultiplier;
+            const rawSquares = pitchAdjustedSqFt / 100;
+            const totalSquares = rawSquares * (1 + quote.calculation.wastePercent / 100);
+            const bundleCount = Math.ceil(totalSquares * 3);
+            handleCalculationChange({
+              ...quote.calculation,
+              groundSqFt: sqFt,
+              rawSquares: Number(rawSquares.toFixed(2)),
+              totalSquares: Number(totalSquares.toFixed(2)),
+              bundleCount,
+            });
+          }}
           onAddressChange={(newAddr) => {
             onUpdateQuote({
               ...quote,
@@ -479,6 +500,9 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
         onRemovePhoto={handleRemovePhoto}
       />
 
+      {/* 6. Contractor Profit Margin & Job Costing Meter (Outperforms ApexOS) */}
+      <JobCostingMeter quote={quote} />
+
       {/* Signature Section Modal / Inline */}
       {showSignatureModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
@@ -536,6 +560,16 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
             >
               <Send className="w-3.5 h-3.5 text-emerald-400" />
               <span>SMS Link</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsFinancingOpen(true)}
+              className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-teal-300 border border-teal-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+              title="Homeowner Monthly Financing Calculator"
+            >
+              <DollarSign className="w-3.5 h-3.5 text-teal-400" />
+              <span>Financing</span>
             </button>
 
             <button
@@ -611,6 +645,13 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
         onClose={() => setIsStripeOpen(false)}
         onPaymentSuccess={handlePaymentSuccess}
         stripePaymentLink={stripePaymentLink}
+      />
+
+      {/* Homeowner Financing Modal */}
+      <HomeownerFinancingModal
+        quote={quote}
+        isOpen={isFinancingOpen}
+        onClose={() => setIsFinancingOpen(false)}
       />
     </div>
   );

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Check, Phone, MapPin, Share2, CreditCard, ArrowLeft, Printer } from 'lucide-react';
+import { ShieldCheck, Check, Phone, MapPin, Share2, CreditCard, ArrowLeft, Printer, DollarSign, Sparkles } from 'lucide-react';
 import { Quote, ShingleTierId } from '../../types';
 import { SHINGLE_TIERS } from '../../data/seedData';
 import { TierSelector } from '../Estimator/TierSelector';
 import { SatelliteRoofViewer } from '../Estimator/SatelliteRoofViewer';
 import { SignaturePad } from '../Signature/SignaturePad';
 import { StripeCheckoutModal } from '../Payment/StripeCheckoutModal';
+import { HomeownerFinancingModal } from '../Payment/HomeownerFinancingModal';
 
 interface CustomerProposalViewProps {
   quote: Quote;
@@ -21,6 +22,7 @@ export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
   stripePaymentLink,
 }) => {
   const [isStripeOpen, setIsStripeOpen] = useState(false);
+  const [isFinancingOpen, setIsFinancingOpen] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
 
   const selectedTier = SHINGLE_TIERS[quote.selectedTier];
@@ -186,6 +188,7 @@ export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
         state={quote.customer.state}
         zip={quote.customer.zip}
         totalSquares={quote.calculation.totalSquares}
+        groundSqFt={quote.calculation.groundSqFt}
         onAddressChange={(newAddr) => {
           onUpdateQuote({
             ...quote,
@@ -337,6 +340,37 @@ export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
           </div>
         </div>
 
+        {/* Homeowner Financing Option Card (Beat ApexOS feature) */}
+        <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-5 rounded-2xl border border-teal-500/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center font-bold shrink-0">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-white uppercase tracking-wider">
+                  Flexible Monthly Roof Financing Available
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-bold">
+                  $0 Down
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Plans as low as <strong className="text-emerald-400 font-mono">${Math.round((quote.total * (1 + 0.0899 * 5)) / 60)}/mo</strong> or 0% APR for 12 months &bull; Soft credit check
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsFinancingOpen(true)}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/40 font-bold text-xs flex items-center justify-center gap-1.5 transition-all whitespace-nowrap"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+            <span>Explore Monthly Financing</span>
+          </button>
+        </div>
+
         {/* Deposit Schedule Action Banner */}
         <div className="bg-[#081510] p-5 sm:p-6 rounded-2xl border border-emerald-500/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-lg shadow-emerald-950/30">
           <div className="space-y-1">
@@ -390,6 +424,13 @@ export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
         isOpen={isStripeOpen}
         onClose={() => setIsStripeOpen(false)}
         onPaymentSuccess={handlePaymentSuccess}
+      />
+
+      {/* Homeowner Financing Modal */}
+      <HomeownerFinancingModal
+        quote={quote}
+        isOpen={isFinancingOpen}
+        onClose={() => setIsFinancingOpen(false)}
       />
     </div>
   );
