@@ -97,10 +97,4 @@ Outputs a CSV file `contractor_leads_austin.csv` ready for cold outreach.
 
 ---
 
-## 💰 The Math to ₹1 Cr/Month (\$120,000/mo)
-
-- **Subscription Fee**: \$249 / month flat (unlimited crew seats)
-- **Stripe Connect Fee**: 0.4% platform fee on collected deposits
-- **Contractors Needed**: **350 contracting businesses** across US Tier-2 cities (Austin, Tampa, Denver, Charlotte, Dallas, Nashville)
-- **Customer Acquisition**: \$0 cold SMS & Loom demo videos to local owners
-- **Retention**: < 1.5% churn once daily routes, inspections, and customer records live in the app.
+.
