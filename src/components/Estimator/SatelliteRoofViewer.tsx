@@ -184,10 +184,38 @@ export const SatelliteRoofViewer: React.FC<SatelliteRoofViewerProps> = ({
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search any street address or city (e.g. 3812 Monticello Ave, Dallas, TX or Tampa, FL)"
+              placeholder="Search ANY address, city, landmark, or coordinates in the world..."
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-medium"
             />
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
+              }
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  const coords = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+                  setSearchInput(coords);
+                  setActiveQuery(coords);
+                  setZoomLevel(20);
+                },
+                (err) => {
+                  console.warn('Geolocation error:', err);
+                  alert('Could not access GPS. Please ensure location permission is allowed in your browser.');
+                },
+                { enableHighAccuracy: true, timeout: 8000 }
+              );
+            }}
+            className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700/80 transition-all flex items-center justify-center shrink-0"
+            title="Use My Current GPS Location (On-Site)"
+          >
+            <Compass className="w-4 h-4" />
+          </button>
+
           <button
             type="submit"
             className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black shrink-0 transition-all shadow-md shadow-emerald-500/20"
