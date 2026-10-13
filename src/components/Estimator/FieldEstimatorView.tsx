@@ -228,8 +228,8 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
         </div>
 
         {/* Customer fields */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 text-xs">
+          <div className="md:col-span-3">
             <label className="block text-slate-400 mb-1 font-medium">Homeowner Name</label>
             <input
               type="text"
@@ -240,11 +240,12 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
                   customer: { ...quote.customer, name: e.target.value },
                 })
               }
+              placeholder="e.g. Robert Miller"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500"
             />
           </div>
 
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-slate-400 mb-1 font-medium">Cell Phone (SMS)</label>
             <input
               type="text"
@@ -255,12 +256,13 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
                   customer: { ...quote.customer, phone: e.target.value },
                 })
               }
+              placeholder="(512) 555-0193"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500"
             />
           </div>
 
-          <div>
-            <label className="block text-slate-400 mb-1 font-medium">Property Address</label>
+          <div className="md:col-span-3">
+            <label className="block text-slate-400 mb-1 font-medium">Street Address</label>
             <input
               type="text"
               value={quote.customer.address}
@@ -270,27 +272,58 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
                   customer: { ...quote.customer, address: e.target.value },
                 })
               }
+              placeholder="4910 Whispering Valley Dr"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500"
             />
           </div>
 
-          <div>
-            <label className="block text-slate-400 mb-1 font-medium">City, State ZIP</label>
+          <div className="md:col-span-2">
+            <label className="block text-slate-400 mb-1 font-medium">City</label>
             <input
               type="text"
-              value={`${quote.customer.city}, ${quote.customer.state} ${quote.customer.zip}`}
-              onChange={(e) => {
-                const parts = e.target.value.split(',');
+              value={quote.customer.city}
+              onChange={(e) =>
                 onUpdateQuote({
                   ...quote,
-                  customer: {
-                    ...quote.customer,
-                    city: parts[0]?.trim() || '',
-                  },
-                });
-              }}
+                  customer: { ...quote.customer, city: e.target.value },
+                })
+              }
+              placeholder="Austin"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500"
             />
+          </div>
+
+          <div className="md:col-span-2 grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-slate-400 mb-1 font-medium">State</label>
+              <input
+                type="text"
+                value={quote.customer.state}
+                onChange={(e) =>
+                  onUpdateQuote({
+                    ...quote,
+                    customer: { ...quote.customer, state: e.target.value.toUpperCase() },
+                  })
+                }
+                placeholder="TX"
+                className="w-full px-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500 uppercase text-center"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-400 mb-1 font-medium">ZIP</label>
+              <input
+                type="text"
+                value={quote.customer.zip}
+                onChange={(e) =>
+                  onUpdateQuote({
+                    ...quote,
+                    customer: { ...quote.customer, zip: e.target.value },
+                  })
+                }
+                placeholder="78759"
+                className="w-full px-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500 text-center"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -303,6 +336,15 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
           state={quote.customer.state}
           zip={quote.customer.zip}
           totalSquares={quote.calculation.totalSquares}
+          onAddressChange={(newAddr) => {
+            onUpdateQuote({
+              ...quote,
+              customer: {
+                ...quote.customer,
+                ...newAddr,
+              },
+            });
+          }}
         />
       )}
 

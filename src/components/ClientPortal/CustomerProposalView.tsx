@@ -186,6 +186,15 @@ export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
         state={quote.customer.state}
         zip={quote.customer.zip}
         totalSquares={quote.calculation.totalSquares}
+        onAddressChange={(newAddr) => {
+          onUpdateQuote({
+            ...quote,
+            customer: {
+              ...quote.customer,
+              ...newAddr,
+            },
+          });
+        }}
       />
 
       {/* Interactive Good / Better / Best Shingle Tier Picker */}
