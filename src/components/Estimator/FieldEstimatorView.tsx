@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   User,
   Send,
@@ -53,6 +53,26 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
   const [isInsuranceModalOpen, setIsInsuranceModalOpen] = useState(false);
   const [isFinancingOpen, setIsFinancingOpen] = useState(false);
   const [showSatellite, setShowSatellite] = useState(true);
+
+  // Local draft for customer text fields — updates instantly without triggering
+  // a Supabase cloud write on every keystroke (zero-lag address typing fix)
+  const [draftCustomer, setDraftCustomer] = useState(quote.customer);
+  const customerDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync if parent quote changes externally (e.g. different quote selected)
+  useEffect(() => {
+    setDraftCustomer(quote.customer);
+  }, [quote.id]);
+
+  const handleCustomerFieldChange = (field: keyof typeof draftCustomer, value: string) => {
+    const updated = { ...draftCustomer, [field]: value };
+    setDraftCustomer(updated); // instant local update → no lag
+    // Debounce propagation upwards (and to Supabase) by 600ms
+    if (customerDebounceTimer.current) clearTimeout(customerDebounceTimer.current);
+    customerDebounceTimer.current = setTimeout(() => {
+      onUpdateQuote({ ...quote, customer: updated });
+    }, 600);
+  };
 
   const calculateTotals = (
     calculation: RoofCalculation,
@@ -238,13 +258,8 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
             <label className="block text-slate-400 mb-1 font-medium">Homeowner Name</label>
             <input
               type="text"
-              value={quote.customer.name}
-              onChange={(e) =>
-                onUpdateQuote({
-                  ...quote,
-                  customer: { ...quote.customer, name: e.target.value },
-                })
-              }
+              value={draftCustomer.name}
+              onChange={(e) => handleCustomerFieldChange('name', e.target.value)}
               placeholder="e.g. Robert Miller"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500"
             />
@@ -254,13 +269,8 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
             <label className="block text-slate-400 mb-1 font-medium">Cell Phone (SMS)</label>
             <input
               type="text"
-              value={quote.customer.phone}
-              onChange={(e) =>
-                onUpdateQuote({
-                  ...quote,
-                  customer: { ...quote.customer, phone: e.target.value },
-                })
-              }
+              value={draftCustomer.phone}
+              onChange={(e) => handleCustomerFieldChange('phone', e.target.value)}
               placeholder="(512) 555-0193"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500"
             />
@@ -270,13 +280,8 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
             <label className="block text-slate-400 mb-1 font-medium">Street Address</label>
             <input
               type="text"
-              value={quote.customer.address}
-              onChange={(e) =>
-                onUpdateQuote({
-                  ...quote,
-                  customer: { ...quote.customer, address: e.target.value },
-                })
-              }
+              value={draftCustomer.address}
+              onChange={(e) => handleCustomerFieldChange('address', e.target.value)}
               placeholder="4910 Whispering Valley Dr"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500"
             />
@@ -286,13 +291,8 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
             <label className="block text-slate-400 mb-1 font-medium">City</label>
             <input
               type="text"
-              value={quote.customer.city}
-              onChange={(e) =>
-                onUpdateQuote({
-                  ...quote,
-                  customer: { ...quote.customer, city: e.target.value },
-                })
-              }
+              value={draftCustomer.city}
+              onChange={(e) => handleCustomerFieldChange('city', e.target.value)}
               placeholder="Austin"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500"
             />
@@ -303,13 +303,8 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
               <label className="block text-slate-400 mb-1 font-medium">State</label>
               <input
                 type="text"
-                value={quote.customer.state}
-                onChange={(e) =>
-                  onUpdateQuote({
-                    ...quote,
-                    customer: { ...quote.customer, state: e.target.value.toUpperCase() },
-                  })
-                }
+                value={draftCustomer.state}
+                onChange={(e) => handleCustomerFieldChange('state', e.target.value.toUpperCase())}
                 placeholder="TX"
                 className="w-full px-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500 uppercase text-center"
               />
@@ -318,13 +313,8 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
               <label className="block text-slate-400 mb-1 font-medium">ZIP</label>
               <input
                 type="text"
-                value={quote.customer.zip}
-                onChange={(e) =>
-                  onUpdateQuote({
-                    ...quote,
-                    customer: { ...quote.customer, zip: e.target.value },
-                  })
-                }
+                value={draftCustomer.zip}
+                onChange={(e) => handleCustomerFieldChange('zip', e.target.value)}
                 placeholder="78759"
                 className="w-full px-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500 text-center"
               />

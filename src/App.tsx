@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Quote, Technician, SmsMessage } from './types';
 import {
   INITIAL_QUOTES,
@@ -129,11 +129,19 @@ export function App() {
 
   const activeQuote = quotes.find((q) => q.id === activeQuoteId) || quotes[0];
 
-  const handleUpdateQuote = (updated: Quote) => {
+  // Debounce timer ref — prevents Supabase from firing on every keystroke
+  const cloudSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleUpdateQuote = useCallback((updated: Quote) => {
+    // 1. Update local React state IMMEDIATELY → zero-lag typing
     setQuotes((prev) => prev.map((q) => (q.id === updated.id ? updated : q)));
-    // Sync to Supabase PostgreSQL cloud table
-    syncQuoteToCloud(updated);
-  };
+
+    // 2. Debounce the Supabase cloud sync — fires only 800ms after last change
+    if (cloudSyncTimer.current) clearTimeout(cloudSyncTimer.current);
+    cloudSyncTimer.current = setTimeout(() => {
+      syncQuoteToCloud(updated);
+    }, 800);
+  }, []);
 
   const handleCreateNewQuote = () => {
     const nextNum = Math.floor(8800 + Math.random() * 1000);
