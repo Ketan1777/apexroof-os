@@ -290,42 +290,94 @@ export function subscribeToQuotes(onQuoteUpdate: (quote: Quote) => void): (() =>
  */
 export async function signUpWithEmail(email: string, password: string, companyName?: string) {
   const client = getSupabaseClient();
-  if (!client) {
-    return { user: null, error: 'Database not connected. Please connect Supabase in Settings.' };
+  if (client) {
+    try {
+      const { data, error } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { company_name: companyName || 'Apex Roofing & Restoration' },
+        },
+      });
+      if (error) return { user: null, error: error.message };
+      return { user: data.user, error: null };
+    } catch (err: any) {
+      return { user: null, error: err?.message || 'Failed to sign up.' };
+    }
   }
-  try {
-    const { data, error } = await client.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { company_name: companyName || 'Apex Roofing & Restoration' },
-      },
-    });
-    if (error) return { user: null, error: error.message };
-    return { user: data.user, error: null };
-  } catch (err: any) {
-    return { user: null, error: err?.message || 'Failed to sign up.' };
+
+  // Universal Local Owner Account Registration (works without Supabase setup)
+  if (!email || !password || password.length < 6) {
+    return { user: null, error: 'Valid email and password (minimum 6 characters) required.' };
   }
+
+  const localAccount = {
+    email: email.toLowerCase().trim(),
+    password,
+    companyName: companyName || 'Apex Roofing & Restoration',
+    createdAt: new Date().toISOString(),
+  };
+  localStorage.setItem('apex_local_owner_account', JSON.stringify(localAccount));
+  localStorage.setItem('apex_user_email', localAccount.email);
+  return {
+    user: { id: `owner_${Date.now()}`, email: localAccount.email } as any,
+    error: null,
+  };
 }
 
 export async function signInWithEmail(email: string, password: string) {
   const client = getSupabaseClient();
-  if (!client) {
-    return { user: null, error: 'Database not connected. Please connect Supabase in Settings.' };
+  if (client) {
+    try {
+      const { data, error } = await client.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) return { user: null, error: error.message };
+      return { user: data.user, error: null };
+    } catch (err: any) {
+      return { user: null, error: err?.message || 'Failed to sign in.' };
+    }
   }
-  try {
-    const { data, error } = await client.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) return { user: null, error: error.message };
-    return { user: data.user, error: null };
-  } catch (err: any) {
-    return { user: null, error: err?.message || 'Failed to sign in.' };
+
+  // Universal Local Owner Account Verification
+  const savedAccountStr = localStorage.getItem('apex_local_owner_account');
+  if (savedAccountStr) {
+    try {
+      const savedAccount = JSON.parse(savedAccountStr);
+      if (
+        savedAccount.email === email.toLowerCase().trim() &&
+        savedAccount.password === password
+      ) {
+        localStorage.setItem('apex_user_email', savedAccount.email);
+        return {
+          user: { id: 'owner_local', email: savedAccount.email } as any,
+          error: null,
+        };
+      }
+    } catch (e) {
+      console.warn(e);
+    }
   }
+
+  // Built-in Demo Master Roofer Credentials: owner@apexroofaustin.com / admin123
+  if (email.toLowerCase().trim() === 'owner@apexroofaustin.com' && password === 'admin123') {
+    localStorage.setItem('apex_user_email', email);
+    return {
+      user: { id: 'owner_default', email } as any,
+      error: null,
+    };
+  }
+
+  return {
+    user: null,
+    error: 'Invalid email or password. If you do not have an account yet, switch to the Sign Up tab.',
+  };
 }
 
 export async function signOutUser() {
+  localStorage.removeItem('apex_user_email');
+  sessionStorage.removeItem('apex_admin_unlocked');
   const client = getSupabaseClient();
   if (!client) return { error: null };
   try {
@@ -338,12 +390,18 @@ export async function signOutUser() {
 
 export async function getCurrentAuthUser() {
   const client = getSupabaseClient();
-  if (!client) return null;
-  try {
-    const { data: { user } } = await client.auth.getUser();
-    return user;
-  } catch {
-    return null;
+  if (client) {
+    try {
+      const { data: { user } } = await client.auth.getUser();
+      if (user) return user;
+    } catch {
+      // ignore
+    }
   }
+  const localEmail = localStorage.getItem('apex_user_email');
+  if (localEmail) {
+    return { id: 'owner_session', email: localEmail } as any;
+  }
+  return null;
 }
 

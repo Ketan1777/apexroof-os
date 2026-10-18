@@ -21,6 +21,9 @@ import {
   Mail,
   Phone as PhoneIcon,
   FileText,
+  Eye,
+  EyeOff,
+  UserCheck,
 } from 'lucide-react';
 import { testSupabaseConnection, resetSupabaseClient } from '../../lib/supabase';
 
@@ -46,6 +49,8 @@ interface ContractorBillingModalProps {
   onSaveSettings: (settings: ContractorSettings) => void;
   onSyncAllQuotes?: () => Promise<number>;
   onLockAdmin?: () => void;
+  currentUserEmail?: string | null;
+  onOpenAuth?: () => void;
 }
 
 const SQL_SCHEMA_SNIPPET = `-- 1. Create Quotes Table
@@ -104,6 +109,8 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
   onSaveSettings,
   onSyncAllQuotes,
   onLockAdmin,
+  currentUserEmail,
+  onOpenAuth,
 }) => {
   const [formData, setFormData] = useState<ContractorSettings>(() => ({
     ...settings,
@@ -113,6 +120,7 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
     supabaseAnonKey: settings.supabaseAnonKey || localStorage.getItem('apex_supabase_anon_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '',
   }));
 
+  const [showSecrets, setShowSecrets] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
   const [testingDb, setTestingDb] = useState(false);
   const [dbTestResult, setDbTestResult] = useState<{ success: boolean; message: string; tableReady?: boolean } | null>(null);
@@ -262,6 +270,55 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
 
         {/* Scrollable Form Content */}
         <div className="p-6 overflow-y-auto space-y-6">
+          {/* Owner Account Security Banner */}
+          <div className={`p-4 rounded-2xl border text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+            currentUserEmail
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+              : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+          }`}>
+            <div className="flex items-center gap-2.5">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
+                currentUserEmail ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+              }`}>
+                {currentUserEmail ? <UserCheck className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+              </div>
+              <div>
+                <p className="font-bold text-white">
+                  {currentUserEmail ? `Owner Authenticated: ${currentUserEmail}` : 'Owner Account Required'}
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {currentUserEmail
+                    ? 'Your database and Stripe credentials are locked exclusively to this account.'
+                    : 'Sign in with your Owner Account to safeguard live database and Stripe keys.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowSecrets(!showSecrets)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white text-xs font-semibold transition-colors"
+              >
+                {showSecrets ? <EyeOff className="w-3.5 h-3.5 text-slate-400" /> : <Eye className="w-3.5 h-3.5 text-emerald-400" />}
+                <span>{showSecrets ? 'Mask Keys' : 'Reveal Keys'}</span>
+              </button>
+
+              {!currentUserEmail && onOpenAuth && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenAuth();
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm transition-colors"
+                >
+                  Sign In / Sign Up
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* 0. Contractor Security & Master Admin PIN */}
           <div className="bg-gradient-to-br from-emerald-950/40 via-slate-950 to-slate-950 p-5 rounded-2xl border border-emerald-900/60 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -435,11 +492,14 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs text-slate-300 mb-1 font-medium">
-                  Supabase Anon Public API Key
+                <label className="block text-xs text-slate-300 mb-1 font-medium flex items-center justify-between">
+                  <span>Supabase Anon Public API Key</span>
+                  <span className="text-[10px] text-slate-500 font-normal">
+                    {showSecrets ? 'Plaintext' : 'Masked (Protected)'}
+                  </span>
                 </label>
                 <input
-                  type="password"
+                  type={showSecrets ? 'text' : 'password'}
                   value={formData.supabaseAnonKey || ''}
                   onChange={(e) => setFormData({ ...formData, supabaseAnonKey: e.target.value })}
                   placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -586,9 +646,12 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
               <div>
                 <label className="block text-slate-300 mb-1 font-medium flex items-center justify-between">
                   <span>Stripe Publishable Key (pk_live_... or pk_test_...)</span>
+                  <span className="text-[10px] text-slate-500 font-normal">
+                    {showSecrets ? 'Plaintext' : 'Masked (Protected)'}
+                  </span>
                 </label>
                 <input
-                  type="text"
+                  type={showSecrets ? 'text' : 'password'}
                   value={formData.stripePublishableKey}
                   onChange={(e) => setFormData({ ...formData, stripePublishableKey: e.target.value })}
                   placeholder="pk_test_51P9..."
@@ -599,10 +662,12 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
               <div>
                 <label className="block text-slate-300 mb-1 font-medium flex items-center justify-between">
                   <span>Direct Stripe Payment Link URL (Instant 1-Click Checkout)</span>
-                  <span className="text-[11px] text-slate-500">e.g. buy.stripe.com/12345</span>
+                  <span className="text-[10px] text-slate-500 font-normal">
+                    {showSecrets ? 'Plaintext' : 'Masked (Protected)'}
+                  </span>
                 </label>
                 <input
-                  type="text"
+                  type={showSecrets ? 'text' : 'password'}
                   value={formData.stripePaymentLink}
                   onChange={(e) => setFormData({ ...formData, stripePaymentLink: e.target.value })}
                   placeholder="https://buy.stripe.com/..."

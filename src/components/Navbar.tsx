@@ -156,12 +156,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           <button
             onClick={onOpenAuth}
-            className="flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-medium transition-all"
-            title={currentUserEmail ? `Account: ${currentUserEmail}` : 'Sign In / Register'}
+            className={`flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-xl border text-xs transition-all ${
+              currentUserEmail
+                ? 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-800 font-medium'
+                : 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 text-emerald-300 hover:text-white border-emerald-500/40 font-bold shadow-sm shadow-emerald-500/10'
+            }`}
+            title={currentUserEmail ? `Active Owner Account: ${currentUserEmail}` : 'Owner Login / Sign Up (Protect Database & Stripe)'}
           >
             <User className="w-4 h-4 text-emerald-400" />
             <span className="hidden md:inline ml-1.5">
-              {currentUserEmail ? currentUserEmail.split('@')[0] : 'Sign In'}
+              {currentUserEmail ? currentUserEmail.split('@')[0] : 'Sign In / Sign Up'}
             </span>
           </button>
 

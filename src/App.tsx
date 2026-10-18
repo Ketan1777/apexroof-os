@@ -651,6 +651,8 @@ export function App() {
         onSaveSettings={setSettings}
         onSyncAllQuotes={handleSyncAllQuotes}
         onLockAdmin={handleLockAdmin}
+        currentUserEmail={currentUserEmail}
+        onOpenAuth={() => setIsAuthOpen(true)}
       />
 
       {/* Admin Security PIN Verification Modal */}
