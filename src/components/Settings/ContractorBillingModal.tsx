@@ -16,6 +16,11 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle2,
+  Lock,
+  LockOpen,
+  Mail,
+  Phone as PhoneIcon,
+  FileText,
 } from 'lucide-react';
 import { testSupabaseConnection, resetSupabaseClient } from '../../lib/supabase';
 
@@ -23,6 +28,7 @@ export interface ContractorSettings {
   companyName: string;
   phone: string;
   email: string;
+  licenseNumber?: string;
   currentPlan: 'starter' | 'pro' | 'unlimited';
   stripePublishableKey: string;
   stripePaymentLink: string;
@@ -30,6 +36,7 @@ export interface ContractorSettings {
   testMode: boolean;
   supabaseUrl?: string;
   supabaseAnonKey?: string;
+  adminPin?: string;
 }
 
 interface ContractorBillingModalProps {
@@ -38,6 +45,7 @@ interface ContractorBillingModalProps {
   settings: ContractorSettings;
   onSaveSettings: (settings: ContractorSettings) => void;
   onSyncAllQuotes?: () => Promise<number>;
+  onLockAdmin?: () => void;
 }
 
 const SQL_SCHEMA_SNIPPET = `-- 1. Create Quotes Table
@@ -95,9 +103,12 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
   settings,
   onSaveSettings,
   onSyncAllQuotes,
+  onLockAdmin,
 }) => {
   const [formData, setFormData] = useState<ContractorSettings>(() => ({
     ...settings,
+    adminPin: settings.adminPin || localStorage.getItem('apex_admin_pin') || '1234',
+    licenseNumber: settings.licenseNumber || 'TX-R-88391',
     supabaseUrl: settings.supabaseUrl || localStorage.getItem('apex_supabase_url') || import.meta.env.VITE_SUPABASE_URL || '',
     supabaseAnonKey: settings.supabaseAnonKey || localStorage.getItem('apex_supabase_anon_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '',
   }));
@@ -203,6 +214,9 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.adminPin) {
+      localStorage.setItem('apex_admin_pin', formData.adminPin.trim());
+    }
     if (formData.supabaseUrl) {
       localStorage.setItem('apex_supabase_url', formData.supabaseUrl.trim());
     }
@@ -233,9 +247,9 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
                 <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                   Settings & Cloud Sync
                 </span>
-                <span className="text-xs text-slate-400">PostgreSQL Database & Billing</span>
+                <span className="text-xs text-slate-400">PostgreSQL Database & Security</span>
               </div>
-              <h3 className="text-lg font-bold text-white mt-0.5">Cloud Database, Billing & Real Payments</h3>
+              <h3 className="text-lg font-bold text-white mt-0.5">Company Profile, Pricing & Master Security</h3>
             </div>
           </div>
           <button
@@ -248,7 +262,134 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
 
         {/* Scrollable Form Content */}
         <div className="p-6 overflow-y-auto space-y-6">
-          {/* 1. Supabase PostgreSQL Cloud Database Sync */}
+          {/* 0. Contractor Security & Master Admin PIN */}
+          <div className="bg-gradient-to-br from-emerald-950/40 via-slate-950 to-slate-950 p-5 rounded-2xl border border-emerald-900/60 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <span>Admin Security PIN & Privacy Lock</span>
+                    <span className="text-[10px] font-mono px-2 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Active
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-400">
+                    Locks company settings, internal costs, and CRM from homeowners & unauthorized devices.
+                  </p>
+                </div>
+              </div>
+
+              {onLockAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onLockAdmin();
+                    onClose();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 text-xs font-bold border border-slate-700 hover:border-rose-500/30 transition-colors shrink-0"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Lock App Now</span>
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-800/80">
+              <div>
+                <label className="block text-xs text-slate-300 mb-1 font-medium flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>4-Digit Master PIN</span>
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={formData.adminPin || '1234'}
+                  onChange={(e) => setFormData({ ...formData, adminPin: e.target.value.replace(/[^0-9]/g, '') })}
+                  placeholder="1234"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white font-mono tracking-widest text-center font-bold focus:outline-none focus:border-emerald-500"
+                />
+                <span className="text-[10px] text-slate-500 mt-1 block">
+                  Default PIN is <strong className="text-emerald-400">1234</strong>. You can change it anytime.
+                </span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
+                <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Homeowner Safe Mode
+                </span>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  When you present proposals to clients or share proposal links, this PIN prevents clients from viewing your settings or editing quotes.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 1. Contractor Company Profile */}
+          <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 flex items-center justify-center font-bold">
+                <Building className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                  Contractor Company Profile & Licensing
+                </h4>
+                <p className="text-[11px] text-slate-400">
+                  Appears on customer proposals, contracts, invoices, and material orders.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Company Legal Name</label>
+                <input
+                  type="text"
+                  value={formData.companyName}
+                  onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">State Roofing License #</label>
+                <input
+                  type="text"
+                  value={formData.licenseNumber || ''}
+                  onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                  placeholder="e.g. TX-R-88391"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Company Phone (Customer Facing)</label>
+                <input
+                  type="text"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Company Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Supabase PostgreSQL Cloud Database Sync */}
           <div className="bg-slate-950 p-5 rounded-2xl border border-sky-950/80 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">

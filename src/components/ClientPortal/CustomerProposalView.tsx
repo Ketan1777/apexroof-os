@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Check, Phone, MapPin, Share2, CreditCard, ArrowLeft, Printer, DollarSign, Sparkles } from 'lucide-react';
+import { ShieldCheck, Check, Phone, MapPin, Share2, CreditCard, ArrowLeft, Printer, DollarSign, Sparkles, Lock } from 'lucide-react';
 import { Quote, ShingleTierId } from '../../types';
 import { SHINGLE_TIERS } from '../../data/seedData';
 import { TierSelector } from '../Estimator/TierSelector';
@@ -13,6 +13,11 @@ interface CustomerProposalViewProps {
   onUpdateQuote: (updated: Quote) => void;
   onBackToApp?: () => void;
   stripePaymentLink?: string;
+  isPortalMode?: boolean;
+  isAdminUnlocked?: boolean;
+  onAdminUnlockRequest?: () => void;
+  companyName?: string;
+  companyPhone?: string;
 }
 
 export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
@@ -20,6 +25,11 @@ export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
   onUpdateQuote,
   onBackToApp,
   stripePaymentLink,
+  isPortalMode = false,
+  isAdminUnlocked = false,
+  onAdminUnlockRequest,
+  companyName,
+  companyPhone,
 }) => {
   const [isStripeOpen, setIsStripeOpen] = useState(false);
   const [isFinancingOpen, setIsFinancingOpen] = useState(false);
@@ -81,34 +91,68 @@ export const CustomerProposalView: React.FC<CustomerProposalViewProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-16 animate-in fade-in">
       {/* Top Banner Navigation */}
-      {onBackToApp && (
-        <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+      <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+        {onBackToApp && !isPortalMode ? (
           <button
-            onClick={onBackToApp}
+            onClick={() => {
+              if (isAdminUnlocked) {
+                onBackToApp();
+              } else if (onAdminUnlockRequest) {
+                onAdminUnlockRequest();
+              } else {
+                onBackToApp();
+              }
+            }}
             className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Return to Field App
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Return to Field App</span>
+            {!isAdminUnlocked && <Lock className="w-3 h-3 text-amber-400 ml-0.5" />}
           </button>
+        ) : (
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-emerald-400 font-medium hidden sm:inline">Verified Customer Proposal</span>
-            <button
-              onClick={() => window.print()}
-              className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl transition-colors border border-slate-700"
-              title="Print or Save PDF"
-            >
-              <Printer className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Print / PDF</span>
-            </button>
-            <button
-              onClick={handleCopyLink}
-              className="flex items-center gap-1 text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl transition-colors"
-            >
-              <Share2 className="w-3 h-3 text-emerald-400" />
-              {copyToast ? 'Link Copied!' : 'Share SMS Link'}
-            </button>
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-white block leading-tight">
+                {companyName || 'Apex Roofing & Restoration'}
+              </span>
+              <span className="text-[10px] text-slate-400">Homeowner Client Portal</span>
+            </div>
           </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-emerald-400 font-medium hidden sm:inline">Verified Customer Proposal</span>
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl transition-colors border border-slate-700"
+            title="Print or Save PDF"
+          >
+            <Printer className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Print / PDF</span>
+          </button>
+          <button
+            onClick={handleCopyLink}
+            className="flex items-center gap-1 text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl transition-colors"
+          >
+            <Share2 className="w-3 h-3 text-emerald-400" />
+            {copyToast ? 'Link Copied!' : 'Share SMS Link'}
+          </button>
+
+          {isPortalMode && onAdminUnlockRequest && (
+            <button
+              onClick={onAdminUnlockRequest}
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 transition-colors"
+              title="Contractor Staff Unlock"
+            >
+              <Lock className="w-3.5 h-3.5 text-slate-500 hover:text-amber-400" />
+              <span className="text-[10px] hidden md:inline">Staff Access</span>
+            </button>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Header & Contractor Identity */}
       <div className="bg-gradient-to-br from-[#0c1813] via-slate-900 to-slate-950 border border-emerald-950/70 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">

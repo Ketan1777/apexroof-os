@@ -31,6 +31,7 @@ import {
   ContractorSettings,
 } from './components/Settings/ContractorBillingModal';
 import { AuthModal } from './components/Auth/AuthModal';
+import { AdminPinModal } from './components/Auth/AdminPinModal';
 import { PrintableProposalDocument } from './components/Print/PrintableProposalDocument';
 import {
   isCloudConfigured,
@@ -44,16 +45,23 @@ const DEFAULT_SETTINGS: ContractorSettings = {
   companyName: 'Apex Roofing & Restoration',
   phone: '(512) 842-9912',
   email: 'owner@apexroofaustin.com',
+  licenseNumber: 'TX-R-88391',
   currentPlan: 'starter',
   stripePublishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
   stripePaymentLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK || '',
   depositMode: '10_percent',
   testMode: true,
+  adminPin: localStorage.getItem('apex_admin_pin') || '1234',
   supabaseUrl: localStorage.getItem('apex_supabase_url') || import.meta.env.VITE_SUPABASE_URL || '',
   supabaseAnonKey: localStorage.getItem('apex_supabase_anon_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '',
 };
 
 export function App() {
+  // Check URL parameters for direct Homeowner Portal link
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+  const urlPortal = urlParams.get('portal') === 'true' || urlParams.get('mode') === 'client';
+  const urlQuoteId = urlParams.get('quote') || urlParams.get('q');
+
   // Quotes state
   const [quotes, setQuotes] = useState<Quote[]>(() => {
     const saved = localStorage.getItem('apex_quotes');
@@ -61,6 +69,7 @@ export function App() {
   });
 
   const [activeQuoteId, setActiveQuoteId] = useState<string>(() => {
+    if (urlQuoteId) return urlQuoteId;
     return quotes[0]?.id || INITIAL_QUOTES[0].id;
   });
 
@@ -100,7 +109,14 @@ export function App() {
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
   });
 
-  const [currentView, setCurrentView] = useState<AppView>('crm');
+  const [isClientPortalMode, setIsClientPortalMode] = useState<boolean>(() => urlPortal);
+  const [currentView, setCurrentView] = useState<AppView>(() => (urlPortal ? 'customer_preview' : 'crm'));
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState<boolean>(() => {
+    return sessionStorage.getItem('apex_admin_unlocked') === 'true';
+  });
+  const [isAdminPinModalOpen, setIsAdminPinModalOpen] = useState(false);
+  const [adminPinModalAction, setAdminPinModalAction] = useState<'settings' | 'exit_portal'>('settings');
+
   const [isSmsDrawerOpen, setIsSmsDrawerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -108,6 +124,31 @@ export function App() {
     return localStorage.getItem('apex_user_email') || null;
   });
   const [cloudActive, setCloudActive] = useState<boolean>(isCloudConfigured());
+
+  const handleOpenSettings = () => {
+    if (isAdminUnlocked) {
+      setIsSettingsOpen(true);
+    } else {
+      setAdminPinModalAction('settings');
+      setIsAdminPinModalOpen(true);
+    }
+  };
+
+  const handleLockAdmin = () => {
+    setIsAdminUnlocked(false);
+    sessionStorage.removeItem('apex_admin_unlocked');
+  };
+
+  const handleAdminPinSuccess = () => {
+    setIsAdminUnlocked(true);
+    sessionStorage.setItem('apex_admin_unlocked', 'true');
+    if (adminPinModalAction === 'settings') {
+      setIsSettingsOpen(true);
+    } else if (adminPinModalAction === 'exit_portal') {
+      setIsClientPortalMode(false);
+      setCurrentView('estimator');
+    }
+  };
 
   // Check existing session
   useEffect(() => {
@@ -456,18 +497,23 @@ export function App() {
   return (
     <div className="min-h-screen bg-[#08100d] text-slate-100 flex flex-col font-sans">
       {/* Top Navbar & View Switcher */}
-      <Navbar
-        currentView={currentView}
-        onSelectView={setCurrentView}
-        smsCount={smsLog.length}
-        onOpenSmsDrawer={() => setIsSmsDrawerOpen(true)}
-        onNewQuote={handleCreateNewQuote}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        currentPlanName={planLabel}
-        isCloudActive={cloudActive}
-        currentUserEmail={currentUserEmail}
-        onOpenAuth={() => setIsAuthOpen(true)}
-      />
+      {/* Top Navbar & View Switcher — Hidden in Client Portal Mode to protect company data */}
+      {!isClientPortalMode && (
+        <Navbar
+          currentView={currentView}
+          onSelectView={setCurrentView}
+          smsCount={smsLog.length}
+          onOpenSmsDrawer={() => setIsSmsDrawerOpen(true)}
+          onNewQuote={handleCreateNewQuote}
+          onOpenSettings={handleOpenSettings}
+          currentPlanName={planLabel}
+          isCloudActive={cloudActive}
+          currentUserEmail={currentUserEmail}
+          onOpenAuth={() => setIsAuthOpen(true)}
+          isAdminUnlocked={isAdminUnlocked}
+          onLockAdmin={handleLockAdmin}
+        />
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
@@ -486,7 +532,10 @@ export function App() {
           <FieldEstimatorView
             quote={activeQuote}
             onUpdateQuote={handleUpdateQuote}
-            onPresentToClient={() => setCurrentView('customer_preview')}
+            onPresentToClient={() => {
+              setIsClientPortalMode(true);
+              setCurrentView('customer_preview');
+            }}
             onSendSms={handleSendSms}
             stripePaymentLink={settings.stripePaymentLink}
           />
@@ -522,8 +571,24 @@ export function App() {
           <CustomerProposalView
             quote={activeQuote}
             onUpdateQuote={handleUpdateQuote}
-            onBackToApp={() => setCurrentView('estimator')}
+            onBackToApp={() => {
+              if (isAdminUnlocked) {
+                setIsClientPortalMode(false);
+                setCurrentView('estimator');
+              } else {
+                setAdminPinModalAction('exit_portal');
+                setIsAdminPinModalOpen(true);
+              }
+            }}
             stripePaymentLink={settings.stripePaymentLink}
+            isPortalMode={isClientPortalMode}
+            isAdminUnlocked={isAdminUnlocked}
+            onAdminUnlockRequest={() => {
+              setAdminPinModalAction('exit_portal');
+              setIsAdminPinModalOpen(true);
+            }}
+            companyName={settings.companyName}
+            companyPhone={settings.phone}
           />
         )}
 
@@ -578,13 +643,28 @@ export function App() {
         />
       )}
 
-      {/* Contractor Settings, Cloud Database & Billing Modal */}
+      {/* Contractor Settings, Cloud Database & Security Modal */}
       <ContractorBillingModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         settings={settings}
         onSaveSettings={setSettings}
         onSyncAllQuotes={handleSyncAllQuotes}
+        onLockAdmin={handleLockAdmin}
+      />
+
+      {/* Admin Security PIN Verification Modal */}
+      <AdminPinModal
+        isOpen={isAdminPinModalOpen}
+        onClose={() => setIsAdminPinModalOpen(false)}
+        correctPin={settings.adminPin || '1234'}
+        onSuccess={handleAdminPinSuccess}
+        title={adminPinModalAction === 'settings' ? 'Admin Authorization Required' : 'Contractor Staff Authorization'}
+        description={
+          adminPinModalAction === 'settings'
+            ? 'Enter your 4-digit Master PIN to unlock company settings, pricing formulas, and cloud database configuration.'
+            : 'Enter your 4-digit Contractor Master PIN to return to the internal field estimator and CRM.'
+        }
       />
     </div>
   );

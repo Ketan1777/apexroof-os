@@ -171,7 +171,9 @@ export const FieldEstimatorView: React.FC<FieldEstimatorViewProps> = ({
     });
   };
 
-  const smsDefaultText = `Apex Roofing: Hi ${quote.customer.name}! Estimator ${quote.technician.name} prepared your custom roof proposal for ${quote.customer.address} ($${Math.round(quote.total).toLocaleString()}). Review 3 shingle tiers & e-sign: https://apexroof.app/p/${quote.id}`;
+  const appOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://apexroof.app';
+  const customerPortalLink = `${appOrigin}/?quote=${quote.id}&portal=true`;
+  const smsDefaultText = `Apex Roofing: Hi ${quote.customer.name}! Estimator ${quote.technician.name} prepared your custom roof proposal for ${quote.customer.address} ($${Math.round(quote.total).toLocaleString()}). Review 3 shingle tiers & e-sign: ${customerPortalLink}`;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-32 animate-in fade-in">
