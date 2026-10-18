@@ -12,14 +12,18 @@ import {
   MessageSquare,
   Sparkles,
   ShieldCheck,
+  Calendar,
 } from 'lucide-react';
-import { Quote, Technician, SmsMessage } from '../../types';
+import { Quote, Technician, SmsMessage, CrewScheduleItem } from '../../types';
+import { INITIAL_CREW_SCHEDULES } from '../../data/seedData';
 
 interface DispatcherBoardProps {
   quotes: Quote[];
   technicians: Technician[];
   onOpenQuote: (quote: Quote) => void;
   onSendSms: (sms: SmsMessage) => void;
+  crewSchedules?: CrewScheduleItem[];
+  onUpdateScheduleStatus?: (id: string, status: 'scheduled' | 'in_progress' | 'completed') => void;
 }
 
 export const DispatcherBoard: React.FC<DispatcherBoardProps> = ({
@@ -27,6 +31,8 @@ export const DispatcherBoard: React.FC<DispatcherBoardProps> = ({
   technicians,
   onOpenQuote,
   onSendSms,
+  crewSchedules = INITIAL_CREW_SCHEDULES,
+  onUpdateScheduleStatus,
 }) => {
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
 
@@ -194,6 +200,91 @@ export const DispatcherBoard: React.FC<DispatcherBoardProps> = ({
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Daily Crew Schedule Timetable (Priority 4 Feature) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-800">
+          <div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-emerald-400" />
+              Today&apos;s Crew Schedule & Job Assignments
+            </h3>
+            <p className="text-xs text-slate-400">Scheduled installations, tear-offs, and quality inspections</p>
+          </div>
+          <span className="text-xs font-mono font-bold text-slate-300 bg-slate-950 px-3 py-1 rounded-xl border border-slate-800">
+            {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-slate-800 bg-slate-950/60 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th className="py-3 px-3">Crew / Lead</th>
+                <th className="py-3 px-3">Job ID</th>
+                <th className="py-3 px-3">Homeowner & Address</th>
+                <th className="py-3 px-3">Time</th>
+                <th className="py-3 px-3">Task Type</th>
+                <th className="py-3 px-3 text-center">Status</th>
+                <th className="py-3 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/80">
+              {(crewSchedules || INITIAL_CREW_SCHEDULES).map((item) => (
+                <tr key={item.id} className="hover:bg-slate-850/50 transition-colors">
+                  <td className="py-3 px-3 font-semibold text-white">
+                    {item.technicianName}
+                  </td>
+                  <td className="py-3 px-3 font-mono text-purple-400 font-bold">
+                    {item.jobId}
+                  </td>
+                  <td className="py-3 px-3">
+                    <div className="text-white font-medium">{item.customerName}</div>
+                    <div className="text-[11px] text-slate-400 truncate max-w-[220px]">{item.address}</div>
+                  </td>
+                  <td className="py-3 px-3 font-mono text-slate-300 font-bold">
+                    {item.scheduledTime}
+                  </td>
+                  <td className="py-3 px-3">
+                    <span className="text-[11px] text-slate-300 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                      {item.taskType}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3 text-center">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                        item.status === 'completed'
+                          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                          : item.status === 'in_progress'
+                          ? 'bg-purple-500/15 text-purple-400 border-purple-500/30'
+                          : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                      }`}
+                    >
+                      {item.status.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3 text-right">
+                    {item.status !== 'completed' && onUpdateScheduleStatus && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onUpdateScheduleStatus(
+                            item.id,
+                            item.status === 'scheduled' ? 'in_progress' : 'completed'
+                          )
+                        }
+                        className="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-[10px] font-bold border border-emerald-500/30"
+                      >
+                        {item.status === 'scheduled' ? 'Start Task' : 'Mark Done'}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 

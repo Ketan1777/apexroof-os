@@ -9,9 +9,12 @@ import {
   Settings,
   Cloud,
   User,
+  Users,
+  Briefcase,
+  Receipt,
 } from 'lucide-react';
 
-export type AppView = 'estimator' | 'dispatch' | 'customer_preview';
+export type AppView = 'crm' | 'estimator' | 'jobs' | 'invoices' | 'dispatch' | 'customer_preview';
 
 interface NavbarProps {
   currentView: AppView;
@@ -63,16 +66,28 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
             <p className="text-[10px] sm:text-[11px] text-slate-400 truncate mt-0.5">
-              Austin, TX &bull; Fleet Crew 04
+              Austin, TX &bull; Roofing ERP Suite
             </p>
           </div>
         </div>
 
-        {/* Desktop View Switcher Pill */}
-        <nav className="hidden lg:flex items-center p-1 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-inner">
+        {/* Desktop View Switcher Pill - 6 Modules */}
+        <nav className="hidden xl:flex items-center p-1 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-inner">
+          <button
+            onClick={() => onSelectView('crm')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              currentView === 'crm'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>CRM & Leads</span>
+          </button>
+
           <button
             onClick={() => onSelectView('estimator')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
               currentView === 'estimator'
                 ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
                 : 'text-slate-400 hover:text-white'
@@ -83,27 +98,51 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
-            onClick={() => onSelectView('customer_preview')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              currentView === 'customer_preview'
+            onClick={() => onSelectView('jobs')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              currentView === 'jobs'
                 ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Eye className="w-3.5 h-3.5" />
-            <span>Customer Proposal</span>
+            <Briefcase className="w-3.5 h-3.5" />
+            <span>Job Lifecycle</span>
+          </button>
+
+          <button
+            onClick={() => onSelectView('invoices')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              currentView === 'invoices'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Receipt className="w-3.5 h-3.5" />
+            <span>Invoices</span>
           </button>
 
           <button
             onClick={() => onSelectView('dispatch')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
               currentView === 'dispatch'
                 ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
-            <span>Dispatch Map</span>
+            <span>Dispatch & Crew</span>
+          </button>
+
+          <button
+            onClick={() => onSelectView('customer_preview')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              currentView === 'customer_preview'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Proposal</span>
           </button>
         </nav>
 
@@ -153,12 +192,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Symmetrical Mobile View Switcher - Full-width 3-column pill bar */}
-      <div className="lg:hidden mt-2 pt-2 border-t border-slate-800/60">
-        <div className="grid grid-cols-3 gap-1 p-1 bg-slate-900/95 rounded-xl border border-slate-800/80 w-full text-center">
+      {/* Symmetrical Mobile & Tablet View Switcher - 6 items */}
+      <div className="xl:hidden mt-2 pt-2 border-t border-slate-800/60 overflow-x-auto pb-0.5">
+        <div className="flex items-center gap-1 p-1 bg-slate-900/95 rounded-xl border border-slate-800/80 min-w-max text-center">
+          <button
+            onClick={() => onSelectView('crm')}
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+              currentView === 'crm'
+                ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Users className="w-3 h-3" />
+            <span>CRM</span>
+          </button>
+
           <button
             onClick={() => onSelectView('estimator')}
-            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
               currentView === 'estimator'
                 ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30'
                 : 'text-slate-400 hover:text-white'
@@ -169,20 +220,32 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
-            onClick={() => onSelectView('customer_preview')}
-            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-              currentView === 'customer_preview'
+            onClick={() => onSelectView('jobs')}
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+              currentView === 'jobs'
                 ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Eye className="w-3 h-3" />
-            <span>Proposal</span>
+            <Briefcase className="w-3 h-3" />
+            <span>Jobs</span>
+          </button>
+
+          <button
+            onClick={() => onSelectView('invoices')}
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+              currentView === 'invoices'
+                ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Receipt className="w-3 h-3" />
+            <span>Invoices</span>
           </button>
 
           <button
             onClick={() => onSelectView('dispatch')}
-            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
               currentView === 'dispatch'
                 ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30'
                 : 'text-slate-400 hover:text-white'
@@ -190,6 +253,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <LayoutDashboard className="w-3 h-3" />
             <span>Dispatch</span>
+          </button>
+
+          <button
+            onClick={() => onSelectView('customer_preview')}
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+              currentView === 'customer_preview'
+                ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Eye className="w-3 h-3" />
+            <span>Proposal</span>
           </button>
         </div>
       </div>

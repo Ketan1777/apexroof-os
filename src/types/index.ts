@@ -109,3 +109,128 @@ export interface SmsMessage {
   timestamp: string;
   type: 'en_route' | 'quote_sent' | 'deposit_received' | 'crew_dispatched';
 }
+
+// -------------------------------------------------------------
+// CRM & Sales Pipeline Types (Priority 1)
+// -------------------------------------------------------------
+export type LeadStage =
+  | 'new'
+  | 'contacted'
+  | 'inspection_scheduled'
+  | 'quote_sent'
+  | 'negotiation'
+  | 'won'
+  | 'lost';
+
+export type LeadSource =
+  | 'Website'
+  | 'Door-to-Door'
+  | 'Referral'
+  | 'Google Search'
+  | 'Insurance Claim'
+  | 'Storm Canvass';
+
+export interface Lead {
+  id: string;
+  customerName: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  leadSource: LeadSource;
+  dateReceived: string;
+  assignedSalesperson: string;
+  estimatedValue: number;
+  nextFollowUpDate: string;
+  stage: LeadStage;
+  notes: string;
+  quoteId?: string;
+}
+
+// -------------------------------------------------------------
+// Job Lifecycle & Operations Types (Priority 2)
+// -------------------------------------------------------------
+export type JobLifecycleStage =
+  | 'quote_approved'
+  | 'deposit_received'
+  | 'materials_ordered'
+  | 'scheduled'
+  | 'in_progress'
+  | 'quality_inspection'
+  | 'completed'
+  | 'invoiced'
+  | 'paid';
+
+export interface RoofingJob {
+  id: string;
+  jobId: string;
+  quoteId: string;
+  customer: Customer;
+  stage: JobLifecycleStage;
+  assignedCrewId?: string;
+  assignedCrewName?: string;
+  scheduledStartDate?: string;
+  scheduledEndDate?: string;
+  shingleTier: string;
+  totalSquares: number;
+  contractAmount: number;
+  depositPaid: number;
+  remainingBalance: number;
+  materialCost: number;
+  laborCost: number;
+  dumpsterPermitCost: number;
+  grossProfit: number;
+  marginPercent: number;
+  notes?: string;
+  createdAt: string;
+}
+
+// -------------------------------------------------------------
+// Real Invoicing & Accounting Types (Priority 3)
+// -------------------------------------------------------------
+export type InvoiceStatus = 'draft' | 'sent' | 'deposit_applied' | 'paid' | 'overdue';
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  jobId: string;
+  quoteId: string;
+  customer: Customer;
+  issueDate: string;
+  dueDate: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  depositPaid: number;
+  amountDue: number;
+  status: InvoiceStatus;
+  paidAt?: string;
+  paymentMethod?: string;
+}
+
+// -------------------------------------------------------------
+// Team & Crew Scheduling Types (Priority 4)
+// -------------------------------------------------------------
+export interface CrewScheduleItem {
+  id: string;
+  technicianId: string;
+  technicianName: string;
+  jobId: string;
+  customerName: string;
+  address: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  taskType: 'Roof Replacement' | 'Storm Inspection' | 'Tear-off & Prep' | 'Quality Check & Magnet Sweep';
+  status: 'scheduled' | 'in_progress' | 'completed';
+}
