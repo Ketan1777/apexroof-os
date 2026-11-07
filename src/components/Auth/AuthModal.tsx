@@ -374,24 +374,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </button>
 
-              {/* Demo Master Hint */}
-              {activeTab === 'signin' && (
-                <div className="pt-2 text-center">
-                  <p className="text-[11px] text-slate-500">
-                    Master Demo Login:{' '}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail('owner@apexroofaustin.com');
-                        setPassword('admin123');
-                      }}
-                      className="text-emerald-400 hover:underline font-mono"
-                    >
-                      owner@apexroofaustin.com / admin123
-                    </button>
-                  </p>
-                </div>
-              )}
+              {/* Secure Notice */}
+              <div className="pt-2 text-center">
+                <p className="text-[11px] text-slate-500">
+                  🔒 Protected by Owner Account &amp; Private Security PIN
+                </p>
+              </div>
 
               {/* Gatekeeper Demo Option */}
               {isForcedGatekeeper && onContinueAsDemo && (

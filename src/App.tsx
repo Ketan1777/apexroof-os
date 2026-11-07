@@ -51,7 +51,7 @@ const DEFAULT_SETTINGS: ContractorSettings = {
   stripePaymentLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK || '',
   depositMode: '10_percent',
   testMode: true,
-  adminPin: localStorage.getItem('apex_admin_pin') || '1234',
+  adminPin: localStorage.getItem('apex_admin_pin') || '',
   supabaseUrl: localStorage.getItem('apex_supabase_url') || import.meta.env.VITE_SUPABASE_URL || '',
   supabaseAnonKey: localStorage.getItem('apex_supabase_anon_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '',
 };
@@ -126,6 +126,10 @@ export function App() {
   const [cloudActive, setCloudActive] = useState<boolean>(isCloudConfigured());
 
   const handleOpenSettings = () => {
+    if (!currentUserEmail) {
+      setIsAuthOpen(true);
+      return;
+    }
     if (isAdminUnlocked) {
       setIsSettingsOpen(true);
     } else {
@@ -659,13 +663,21 @@ export function App() {
       <AdminPinModal
         isOpen={isAdminPinModalOpen}
         onClose={() => setIsAdminPinModalOpen(false)}
-        correctPin={settings.adminPin || '1234'}
+        correctPin={settings.adminPin || localStorage.getItem('apex_admin_pin') || ''}
         onSuccess={handleAdminPinSuccess}
+        onPinSet={(newPin) => {
+          setSettings((prev) => ({ ...prev, adminPin: newPin }));
+          localStorage.setItem('apex_admin_pin', newPin);
+        }}
+        onResetViaPassword={() => {
+          setIsAdminPinModalOpen(false);
+          setIsAuthOpen(true);
+        }}
         title={adminPinModalAction === 'settings' ? 'Admin Authorization Required' : 'Contractor Staff Authorization'}
         description={
           adminPinModalAction === 'settings'
-            ? 'Enter your 4-digit Master PIN to unlock company settings, pricing formulas, and cloud database configuration.'
-            : 'Enter your 4-digit Contractor Master PIN to return to the internal field estimator and CRM.'
+            ? 'Enter your private 4-digit Security PIN to unlock company settings and cloud database configuration.'
+            : 'Enter your private 4-digit Security PIN to return to the internal field estimator and CRM.'
         }
       />
     </div>

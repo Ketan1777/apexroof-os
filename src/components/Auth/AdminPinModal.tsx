@@ -1,38 +1,51 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Lock, ShieldCheck, X, AlertCircle, KeyRound, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Lock, ShieldCheck, X, AlertCircle, KeyRound, CheckCircle2, Key, RefreshCw } from 'lucide-react';
 
 interface AdminPinModalProps {
   isOpen: boolean;
   onClose: () => void;
   correctPin: string;
   onSuccess: () => void;
+  onPinSet?: (newPin: string) => void;
+  onResetViaPassword?: () => void;
   title?: string;
   description?: string;
 }
+
+type Mode = 'verify' | 'first_time_create' | 'first_time_confirm' | 'change_verify_old' | 'change_create_new' | 'change_confirm_new';
 
 export const AdminPinModal: React.FC<AdminPinModalProps> = ({
   isOpen,
   onClose,
   correctPin,
   onSuccess,
-  title = 'Admin Authorization Required',
-  description = 'Enter your 4-digit Contractor Master PIN to access company settings, pricing rules, and internal ERP records.',
+  onPinSet,
+  onResetViaPassword,
+  title,
+  description,
 }) => {
+  const isFirstTime = !correctPin;
+  const [mode, setMode] = useState<Mode>(isFirstTime ? 'first_time_create' : 'verify');
   const [pin, setPin] = useState('');
+  const [tempNewPin, setTempNewPin] = useState('');
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setPin('');
+      setTempNewPin('');
       setError(false);
       setErrorMessage('');
+      setSuccessMessage('');
+      setMode(!correctPin ? 'first_time_create' : 'verify');
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen]);
+  }, [isOpen, correctPin]);
 
   if (!isOpen) return null;
 
@@ -42,7 +55,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
       setPin(nextPin);
       setError(false);
       if (nextPin.length === 4) {
-        verifyPin(nextPin);
+        processPin(nextPin);
       }
     }
   };
@@ -58,28 +71,130 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
     setErrorMessage('');
   };
 
-  const verifyPin = (candidatePin: string) => {
-    if (candidatePin === correctPin || candidatePin === '1234') {
+  const processPin = (candidatePin: string) => {
+    // 1. First-time setup: Step 1 (create)
+    if (mode === 'first_time_create') {
+      setTempNewPin(candidatePin);
+      setPin('');
+      setMode('first_time_confirm');
+      return;
+    }
+
+    // 2. First-time setup: Step 2 (confirm)
+    if (mode === 'first_time_confirm') {
+      if (candidatePin === tempNewPin) {
+        if (onPinSet) onPinSet(candidatePin);
+        setSuccessMessage('Private Security PIN successfully created!');
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 800);
+      } else {
+        setError(true);
+        setErrorMessage('PINs do not match. Please choose again.');
+        setPin('');
+        setTempNewPin('');
+        setMode('first_time_create');
+      }
+      return;
+    }
+
+    // 3. Changing PIN: Step 1 (Verify old PIN)
+    if (mode === 'change_verify_old') {
+      if (candidatePin === correctPin) {
+        setPin('');
+        setMode('change_create_new');
+      } else {
+        setError(true);
+        setErrorMessage('Current PIN is incorrect. Cannot change.');
+        setTimeout(() => setPin(''), 600);
+      }
+      return;
+    }
+
+    // 4. Changing PIN: Step 2 (Enter new PIN)
+    if (mode === 'change_create_new') {
+      setTempNewPin(candidatePin);
+      setPin('');
+      setMode('change_confirm_new');
+      return;
+    }
+
+    // 5. Changing PIN: Step 3 (Confirm new PIN)
+    if (mode === 'change_confirm_new') {
+      if (candidatePin === tempNewPin) {
+        if (onPinSet) onPinSet(candidatePin);
+        setSuccessMessage('Security PIN successfully updated!');
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1000);
+      } else {
+        setError(true);
+        setErrorMessage('New PINs do not match. Please try again.');
+        setPin('');
+        setTempNewPin('');
+        setMode('change_create_new');
+      }
+      return;
+    }
+
+    // 6. Normal Verification (Exact match only)
+    if (candidatePin === correctPin) {
       onSuccess();
       onClose();
     } else {
       setError(true);
-      setErrorMessage('Incorrect PIN. Please try again.');
+      setErrorMessage('Incorrect Security PIN. Access denied.');
       setTimeout(() => {
         setPin('');
       }, 600);
     }
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (pin.length === 4) {
-      verifyPin(pin);
-    } else {
-      setError(true);
-      setErrorMessage('Please enter a 4-digit PIN.');
+  const getHeaderInfo = () => {
+    switch (mode) {
+      case 'first_time_create':
+        return {
+          title: 'Create Your Secret 4-Digit PIN',
+          badge: 'First-Time Setup',
+          desc: 'Choose a private 4-digit PIN to lock your settings, database, and Stripe credentials so only you can access them.',
+        };
+      case 'first_time_confirm':
+        return {
+          title: 'Confirm Your Secret PIN',
+          badge: 'Confirmation',
+          desc: 'Re-enter the same 4-digit PIN to confirm and lock your account.',
+        };
+      case 'change_verify_old':
+        return {
+          title: 'Enter Current Security PIN',
+          badge: 'Security Verification',
+          desc: 'Enter your existing 4-digit PIN before creating a new one.',
+        };
+      case 'change_create_new':
+        return {
+          title: 'Enter New 4-Digit PIN',
+          badge: 'Change PIN',
+          desc: 'Choose your new private 4-digit PIN.',
+        };
+      case 'change_confirm_new':
+        return {
+          title: 'Confirm New 4-Digit PIN',
+          badge: 'Confirm Change',
+          desc: 'Re-enter your new 4-digit PIN to finalize the change.',
+        };
+      case 'verify':
+      default:
+        return {
+          title: title || 'Owner Authorization Required',
+          badge: 'Owner Protected',
+          desc: description || 'Enter your private 4-digit Security PIN to access company settings, database keys, and Stripe.',
+        };
     }
   };
+
+  const headerInfo = getHeaderInfo();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
@@ -92,9 +207,9 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                {title}
+                {headerInfo.title}
               </h3>
-              <p className="text-[11px] text-slate-400">Security Gate</p>
+              <p className="text-[11px] text-slate-400">{headerInfo.badge}</p>
             </div>
           </div>
           <button
@@ -108,11 +223,11 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
         {/* Content */}
         <div className="p-6 text-center space-y-4">
           <p className="text-xs text-slate-400 leading-relaxed">
-            {description}
+            {headerInfo.desc}
           </p>
 
-          {/* Hidden real input for physical keyboard */}
-          <form onSubmit={handleSubmit}>
+          {/* Hidden physical keyboard input */}
+          <form onSubmit={(e) => { e.preventDefault(); if (pin.length === 4) processPin(pin); }}>
             <input
               ref={inputRef}
               type="password"
@@ -124,7 +239,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
                 setPin(val);
                 setError(false);
                 if (val.length === 4) {
-                  verifyPin(val);
+                  processPin(val);
                 }
               }}
               className="sr-only"
@@ -140,7 +255,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
                 <div
                   key={idx}
                   onClick={() => inputRef.current?.focus()}
-                  className={`w-12 h-14 rounded-2xl flex items-center justify-center text-xl font-bold font-mono transition-all border ${
+                  className={`w-12 h-14 rounded-2xl flex items-center justify-center text-xl font-bold font-mono transition-all border cursor-pointer ${
                     hasDigit
                       ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400 shadow-sm shadow-emerald-500/20 scale-105'
                       : error
@@ -158,6 +273,13 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
             <div className="flex items-center justify-center gap-1.5 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 py-2 px-3 rounded-xl">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 py-2 px-3 rounded-xl">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span>{successMessage}</span>
             </div>
           )}
 
@@ -196,14 +318,55 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
             </button>
           </div>
 
-          {/* Helper Hint */}
-          <div className="pt-2 border-t border-slate-800/60">
-            <p className="text-[11px] text-slate-500">
-              Default Master PIN is <span className="font-mono text-emerald-400 font-bold">1234</span>
-            </p>
-            <p className="text-[10px] text-slate-600 mt-0.5">
-              Changeable anytime inside Settings &rarr; Security
-            </p>
+          {/* Mode Switchers: Change PIN & Forgot PIN */}
+          <div className="pt-3 border-t border-slate-800/80 space-y-2">
+            {mode === 'verify' && (
+              <div className="flex items-center justify-center gap-4 text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPin('');
+                    setError(false);
+                    setErrorMessage('');
+                    setMode('change_verify_old');
+                  }}
+                  className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-2 flex items-center gap-1"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Change PIN</span>
+                </button>
+
+                {onResetViaPassword && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onResetViaPassword();
+                    }}
+                    className="text-slate-400 hover:text-slate-200 underline underline-offset-2 flex items-center gap-1"
+                  >
+                    <Key className="w-3 h-3" />
+                    <span>Reset with Password</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {mode.startsWith('change_') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPin('');
+                  setTempNewPin('');
+                  setError(false);
+                  setErrorMessage('');
+                  setMode('verify');
+                }}
+                className="text-xs text-slate-400 hover:text-slate-200 underline underline-offset-2"
+              >
+                Cancel PIN Change
+              </button>
+            )}
           </div>
         </div>
       </div>

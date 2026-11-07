@@ -24,6 +24,7 @@ import {
   Eye,
   EyeOff,
   UserCheck,
+  KeyRound,
 } from 'lucide-react';
 import { testSupabaseConnection, resetSupabaseClient } from '../../lib/supabase';
 
@@ -114,11 +115,16 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<ContractorSettings>(() => ({
     ...settings,
-    adminPin: settings.adminPin || localStorage.getItem('apex_admin_pin') || '1234',
+    adminPin: settings.adminPin || localStorage.getItem('apex_admin_pin') || '',
     licenseNumber: settings.licenseNumber || 'TX-R-88391',
     supabaseUrl: settings.supabaseUrl || localStorage.getItem('apex_supabase_url') || import.meta.env.VITE_SUPABASE_URL || '',
     supabaseAnonKey: settings.supabaseAnonKey || localStorage.getItem('apex_supabase_anon_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '',
   }));
+
+  const [newPin, setNewPin] = useState('');
+  const [confirmNewPin, setConfirmNewPin] = useState('');
+  const [pinChangeSuccess, setPinChangeSuccess] = useState(false);
+  const [pinChangeError, setPinChangeError] = useState('');
 
   const [showSecrets, setShowSecrets] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
@@ -354,34 +360,103 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-800/80">
-              <div>
-                <label className="block text-xs text-slate-300 mb-1 font-medium flex items-center gap-1.5">
+            {/* PIN Configuration & Update Form */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                   <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>4-Digit Master PIN</span>
-                </label>
-                <input
-                  type="password"
-                  inputMode="numeric"
-                  maxLength={4}
-                  value={formData.adminPin || '1234'}
-                  onChange={(e) => setFormData({ ...formData, adminPin: e.target.value.replace(/[^0-9]/g, '') })}
-                  placeholder="1234"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white font-mono tracking-widest text-center font-bold focus:outline-none focus:border-emerald-500"
-                />
-                <span className="text-[10px] text-slate-500 mt-1 block">
-                  Default PIN is <strong className="text-emerald-400">1234</strong>. You can change it anytime.
+                  <span>Current PIN Status:</span>
+                  <span className="font-mono text-emerald-400 font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                    {formData.adminPin ? '●●●● (Set & Protected)' : 'Not Set Yet'}
+                  </span>
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Only you can change or use this PIN.
                 </span>
               </div>
 
-              <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
-                <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  Homeowner Safe Mode
-                </span>
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  When you present proposals to clients or share proposal links, this PIN prevents clients from viewing your settings or editing quotes.
-                </p>
+              {/* Change PIN Box */}
+              <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+                <div className="flex items-center gap-1.5">
+                  <KeyRound className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    {formData.adminPin ? 'Change Your 4-Digit Security PIN' : 'Set Your 4-Digit Security PIN'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-slate-300 mb-1">New 4-Digit PIN</label>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={newPin}
+                      onChange={(e) => {
+                        setNewPin(e.target.value.replace(/[^0-9]/g, ''));
+                        setPinChangeError('');
+                      }}
+                      placeholder="e.g. 7890"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white font-mono tracking-widest text-center font-bold focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-slate-300 mb-1">Confirm New PIN</label>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={confirmNewPin}
+                      onChange={(e) => {
+                        setConfirmNewPin(e.target.value.replace(/[^0-9]/g, ''));
+                        setPinChangeError('');
+                      }}
+                      placeholder="e.g. 7890"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white font-mono tracking-widest text-center font-bold focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                {pinChangeError && (
+                  <p className="text-xs text-rose-400 flex items-center gap-1.5 bg-rose-500/10 border border-rose-500/20 py-1.5 px-3 rounded-lg">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{pinChangeError}</span>
+                  </p>
+                )}
+
+                {pinChangeSuccess && (
+                  <p className="text-xs text-emerald-400 flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 py-1.5 px-3 rounded-lg">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>Security PIN updated successfully! Only you can unlock settings with this PIN.</span>
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newPin.length !== 4) {
+                      setPinChangeError('PIN must be exactly 4 digits.');
+                      return;
+                    }
+                    if (newPin !== confirmNewPin) {
+                      setPinChangeError('The new PIN and confirmation PIN do not match.');
+                      return;
+                    }
+                    const updated = { ...formData, adminPin: newPin };
+                    setFormData(updated);
+                    localStorage.setItem('apex_admin_pin', newPin);
+                    onSaveSettings(updated);
+                    setPinChangeSuccess(true);
+                    setNewPin('');
+                    setConfirmNewPin('');
+                    setPinChangeError('');
+                    setTimeout(() => setPinChangeSuccess(false), 3500);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all active:scale-[0.98]"
+                >
+                  Save New Security PIN
+                </button>
               </div>
             </div>
           </div>
@@ -479,15 +554,21 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
 
             <div className="grid grid-cols-1 gap-3">
               <div>
-                <label className="block text-xs text-slate-300 mb-1 font-medium">
-                  Supabase Project URL
+                <label className="block text-xs text-slate-300 mb-1 font-medium flex items-center justify-between">
+                  <span>Supabase Project URL</span>
+                  {!currentUserEmail && (
+                    <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Owner Login Required
+                    </span>
+                  )}
                 </label>
                 <input
                   type="text"
+                  disabled={!currentUserEmail}
                   value={formData.supabaseUrl || ''}
                   onChange={(e) => setFormData({ ...formData, supabaseUrl: e.target.value })}
                   placeholder="https://your-project-id.supabase.co"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-sky-500 placeholder:text-slate-600"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-sky-500 placeholder:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -495,15 +576,16 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
                 <label className="block text-xs text-slate-300 mb-1 font-medium flex items-center justify-between">
                   <span>Supabase Anon Public API Key</span>
                   <span className="text-[10px] text-slate-500 font-normal">
-                    {showSecrets ? 'Plaintext' : 'Masked (Protected)'}
+                    {!currentUserEmail ? '🔒 Locked' : showSecrets ? 'Plaintext' : 'Masked (Protected)'}
                   </span>
                 </label>
                 <input
-                  type={showSecrets ? 'text' : 'password'}
+                  type={showSecrets && currentUserEmail ? 'text' : 'password'}
+                  disabled={!currentUserEmail}
                   value={formData.supabaseAnonKey || ''}
                   onChange={(e) => setFormData({ ...formData, supabaseAnonKey: e.target.value })}
                   placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-sky-500 placeholder:text-slate-600"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-sky-500 placeholder:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -647,15 +729,16 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
                 <label className="block text-slate-300 mb-1 font-medium flex items-center justify-between">
                   <span>Stripe Publishable Key (pk_live_... or pk_test_...)</span>
                   <span className="text-[10px] text-slate-500 font-normal">
-                    {showSecrets ? 'Plaintext' : 'Masked (Protected)'}
+                    {!currentUserEmail ? '🔒 Locked' : showSecrets ? 'Plaintext' : 'Masked (Protected)'}
                   </span>
                 </label>
                 <input
-                  type={showSecrets ? 'text' : 'password'}
+                  type={showSecrets && currentUserEmail ? 'text' : 'password'}
+                  disabled={!currentUserEmail}
                   value={formData.stripePublishableKey}
                   onChange={(e) => setFormData({ ...formData, stripePublishableKey: e.target.value })}
                   placeholder="pk_test_51P9..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -663,15 +746,16 @@ export const ContractorBillingModal: React.FC<ContractorBillingModalProps> = ({
                 <label className="block text-slate-300 mb-1 font-medium flex items-center justify-between">
                   <span>Direct Stripe Payment Link URL (Instant 1-Click Checkout)</span>
                   <span className="text-[10px] text-slate-500 font-normal">
-                    {showSecrets ? 'Plaintext' : 'Masked (Protected)'}
+                    {!currentUserEmail ? '🔒 Locked' : showSecrets ? 'Plaintext' : 'Masked (Protected)'}
                   </span>
                 </label>
                 <input
-                  type={showSecrets ? 'text' : 'password'}
+                  type={showSecrets && currentUserEmail ? 'text' : 'password'}
+                  disabled={!currentUserEmail}
                   value={formData.stripePaymentLink}
                   onChange={(e) => setFormData({ ...formData, stripePaymentLink: e.target.value })}
                   placeholder="https://buy.stripe.com/..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <span className="text-[10px] text-slate-500 mt-1 block">
                   Clicking &quot;Pay Deposit via Stripe&quot; on customer proposals will open this payment page directly.

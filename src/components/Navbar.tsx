@@ -169,33 +169,37 @@ export const Navbar: React.FC<NavbarProps> = ({
             </span>
           </button>
 
-          <button
-            onClick={onOpenSettings}
-            className={`flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-xl border text-xs font-medium transition-all ${
-              isAdminUnlocked
-                ? 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-800'
-                : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
-            }`}
-            title={isAdminUnlocked ? "Company Settings & Pricing (Admin Active)" : "Settings (Locked - PIN Required)"}
-          >
-            {isAdminUnlocked ? (
-              <Settings className="w-4 h-4 text-emerald-400" />
-            ) : (
-              <Lock className="w-4 h-4 text-amber-400" />
-            )}
-            <span className="hidden md:inline ml-1.5">
-              {isAdminUnlocked ? 'Settings' : 'Locked'}
-            </span>
-          </button>
+          {currentUserEmail && (
+            <>
+              <button
+                onClick={onOpenSettings}
+                className={`flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-xl border text-xs font-medium transition-all ${
+                  isAdminUnlocked
+                    ? 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-800'
+                    : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
+                }`}
+                title={isAdminUnlocked ? "Company Settings & Pricing (Admin Active)" : "Settings (Locked - PIN Required)"}
+              >
+                {isAdminUnlocked ? (
+                  <Settings className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <Lock className="w-4 h-4 text-amber-400" />
+                )}
+                <span className="hidden md:inline ml-1.5">
+                  {isAdminUnlocked ? 'Settings' : 'Locked'}
+                </span>
+              </button>
 
-          {isAdminUnlocked && onLockAdmin && (
-            <button
-              onClick={onLockAdmin}
-              className="p-2 rounded-xl bg-slate-900/80 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-800 text-xs transition-all"
-              title="Lock Admin Mode (Protect from Homeowners)"
-            >
-              <Lock className="w-4 h-4 text-rose-400" />
-            </button>
+              {isAdminUnlocked && onLockAdmin && (
+                <button
+                  onClick={onLockAdmin}
+                  className="p-2 rounded-xl bg-slate-900/80 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-800 text-xs transition-all"
+                  title="Lock Admin Mode (Protect from Homeowners)"
+                >
+                  <Lock className="w-4 h-4 text-rose-400" />
+                </button>
+              )}
+            </>
           )}
 
           <button

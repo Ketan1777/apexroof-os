@@ -360,15 +360,6 @@ export async function signInWithEmail(email: string, password: string) {
     }
   }
 
-  // Built-in Demo Master Roofer Credentials: owner@apexroofaustin.com / admin123
-  if (email.toLowerCase().trim() === 'owner@apexroofaustin.com' && password === 'admin123') {
-    localStorage.setItem('apex_user_email', email);
-    return {
-      user: { id: 'owner_default', email } as any,
-      error: null,
-    };
-  }
-
   return {
     user: null,
     error: 'Invalid email or password. If you do not have an account yet, switch to the Sign Up tab.',
